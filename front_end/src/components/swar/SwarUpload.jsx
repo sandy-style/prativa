@@ -1,5 +1,13 @@
 import React, { useEffect, useRef, useState } from "react";
-import { Upload, Music2, X, LoaderCircle, FileAudio } from "lucide-react";
+import {
+  Upload,
+  Music2,
+  X,
+  LoaderCircle,
+  FileAudio,
+  AudioLines,
+  Sparkles,
+} from "lucide-react";
 
 import SwarAudioPlayer from "./SwarAudioPlayer";
 
@@ -62,7 +70,6 @@ const SwarUpload = ({ onUpload, onCancel }) => {
     if (!ALLOWED_EXTENSIONS.includes(extension)) {
       setAudioFile(null);
       event.target.value = "";
-
       setError("Only MP3, WAV and M4A files are supported.");
       return;
     }
@@ -82,7 +89,6 @@ const SwarUpload = ({ onUpload, onCancel }) => {
     if (file.type && !allowedMimeTypes.includes(file.type.toLowerCase())) {
       setAudioFile(null);
       event.target.value = "";
-
       setError("Please select a valid MP3, WAV or M4A audio file.");
       return;
     }
@@ -90,7 +96,6 @@ const SwarUpload = ({ onUpload, onCancel }) => {
     if (file.size === 0) {
       setAudioFile(null);
       event.target.value = "";
-
       setError("The selected audio file is empty.");
       return;
     }
@@ -98,7 +103,6 @@ const SwarUpload = ({ onUpload, onCancel }) => {
     if (file.size > MAX_FILE_SIZE) {
       setAudioFile(null);
       event.target.value = "";
-
       setError("Your audio file must not exceed 25 MB.");
       return;
     }
@@ -190,21 +194,29 @@ const SwarUpload = ({ onUpload, onCancel }) => {
     }
   };
 
+  const inputClasses =
+    "w-full rounded-xl border border-white/10 bg-[#08081D] px-4 py-3 text-sm text-white outline-none transition placeholder:text-gray-600 focus:border-[#8B5CF6]/70 focus:ring-2 focus:ring-[#8B5CF6]/10 disabled:opacity-50";
+
   return (
     <form
       onSubmit={handleSubmit}
-      className="mx-auto w-full max-w-2xl rounded-2xl border border-[#EAE6E0] bg-white p-5 shadow-sm sm:p-7"
+      className="mx-auto w-full max-w-2xl overflow-hidden rounded-2xl border border-[#8B5CF6]/20 bg-[#08081D] shadow-[0_20px_80px_rgba(0,0,0,0.4)]"
     >
       {/* Header */}
-      <div className="mb-7 flex items-center justify-between">
-        <div>
-          <h2 className="text-xl font-semibold text-[#202020]">
-            Share your performance
-          </h2>
+      <div className="flex items-center justify-between border-b border-white/[0.07] px-5 py-5 sm:px-7">
+        <div className="flex items-center gap-3">
+          <div className="flex h-11 w-11 items-center justify-center rounded-xl border border-[#8B5CF6]/25 bg-[#8B5CF6]/10 text-[#A78BFA]">
+            <AudioLines size={23} />
+          </div>
 
-          <p className="mt-1 text-sm text-[#99918B]">
-            Let your sound find its audience.
-          </p>
+          <div>
+            <p className="font-orbitron text-base font-bold tracking-wide text-white sm:text-lg">
+              SHARE YOUR SOUND
+            </p>
+            <p className="mt-1 text-xs text-gray-500">
+              Let your sound find its audience.
+            </p>
+          </div>
         </div>
 
         {onCancel && (
@@ -212,178 +224,231 @@ const SwarUpload = ({ onUpload, onCancel }) => {
             type="button"
             onClick={onCancel}
             disabled={loading}
-            className="rounded-full p-2 text-[#88817B] transition hover:bg-[#F8F7F4] hover:text-[#E5092D] disabled:opacity-50"
+            className="rounded-full border border-white/10 p-2 text-gray-400 transition hover:border-red-400/30 hover:bg-red-400/10 hover:text-red-400 disabled:opacity-50"
             aria-label="Close upload"
           >
-            <X size={20} />
+            <X size={19} />
           </button>
         )}
       </div>
 
-      {/* Audio selection */}
-      {!audioFile ? (
-        <button
-          type="button"
-          onClick={() => fileInputRef.current?.click()}
-          disabled={loading}
-          className="flex min-h-48 w-full flex-col items-center justify-center rounded-xl border-2 border-dashed border-[#E5092D]/25 bg-[#F8F7F4] px-5 text-center transition hover:border-[#E5092D] hover:bg-[#E5092D]/[0.03] disabled:opacity-50"
-        >
-          <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-[#E5092D]/[0.08] text-[#E5092D]">
-            <Upload size={25} strokeWidth={1.8} />
+      <div className="space-y-6 p-5 sm:p-7">
+        {/* Audio selection */}
+        <div>
+          <div className="mb-3 flex items-center justify-between">
+            <label className="text-sm font-semibold text-gray-200">
+              Your audio
+            </label>
+            <span className="text-[10px] font-medium uppercase tracking-widest text-gray-500">
+              Required
+            </span>
           </div>
 
-          <span className="font-semibold text-[#202020]">
-            Choose an audio file
-          </span>
-
-          <span className="mt-2 text-xs text-[#99918B]">
-            MP3, WAV or M4A · Maximum 25 MB
-          </span>
-        </button>
-      ) : (
-        <div className="rounded-xl border border-[#EAE6E0] bg-[#F8F7F4] p-4">
-          <div className="mb-4 flex items-center gap-3">
-            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg bg-[#E5092D]/[0.08] text-[#E5092D]">
-              <FileAudio size={23} />
-            </div>
-
-            <div className="min-w-0 flex-1">
-              <p className="truncate text-sm font-semibold text-[#202020]">
-                {audioFile.name}
-              </p>
-
-              <p className="mt-1 text-xs text-[#99918B]">
-                {(audioFile.size / (1024 * 1024)).toFixed(2)} MB
-              </p>
-            </div>
-
+          {!audioFile ? (
             <button
               type="button"
-              onClick={removeAudio}
+              onClick={() => fileInputRef.current?.click()}
               disabled={loading}
-              className="rounded-full p-2 text-[#99918B] transition hover:bg-red-50 hover:text-[#E5092D] disabled:opacity-50"
-              aria-label="Remove audio"
+              className="group flex min-h-48 w-full flex-col items-center justify-center rounded-xl border border-dashed border-[#8B5CF6]/35 bg-[#8B5CF6]/[0.04] px-5 text-center transition duration-300 hover:border-[#A78BFA] hover:bg-[#8B5CF6]/[0.09] disabled:opacity-50"
             >
-              <X size={19} />
+              <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-2xl border border-[#8B5CF6]/25 bg-[#8B5CF6]/10 text-[#A78BFA] transition duration-300 group-hover:scale-105 group-hover:bg-[#8B5CF6]/20">
+                <Upload size={25} strokeWidth={1.8} />
+              </div>
+
+              <span className="text-sm font-semibold text-white">
+                Drop your sound into the universe
+              </span>
+
+              <span className="mt-2 text-xs text-gray-500">
+                Click to browse your files
+              </span>
+
+              <div className="mt-4 flex flex-wrap justify-center gap-2">
+                {["MP3", "WAV", "M4A"].map((format) => (
+                  <span
+                    key={format}
+                    className="rounded-md border border-white/10 bg-white/[0.03] px-2.5 py-1 text-[10px] font-medium tracking-wider text-gray-400"
+                  >
+                    {format}
+                  </span>
+                ))}
+                <span className="rounded-md border border-white/10 bg-white/[0.03] px-2.5 py-1 text-[10px] text-gray-500">
+                  MAX 25 MB
+                </span>
+              </div>
             </button>
+          ) : (
+            <div className="rounded-xl border border-[#8B5CF6]/25 bg-[#8B5CF6]/[0.06] p-4">
+              <div className="mb-4 flex items-center gap-3">
+                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-[#8B5CF6]/25 bg-[#8B5CF6]/10 text-[#A78BFA]">
+                  <FileAudio size={22} />
+                </div>
+
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-sm font-semibold text-white">
+                    {audioFile.name}
+                  </p>
+
+                  <p className="mt-1 text-xs text-gray-500">
+                    {(audioFile.size / (1024 * 1024)).toFixed(2)} MB
+                    <span className="mx-2 text-gray-700">•</span>
+                    <span className="text-[#A78BFA]">Ready to upload</span>
+                  </p>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={removeAudio}
+                  disabled={loading}
+                  className="rounded-full p-2 text-gray-500 transition hover:bg-red-400/10 hover:text-red-400 disabled:opacity-50"
+                  aria-label="Remove audio"
+                >
+                  <X size={19} />
+                </button>
+              </div>
+
+              {audioPreview && (
+                <SwarAudioPlayer
+                  key={audioPreview}
+                  src={audioPreview}
+                  compact
+                />
+              )}
+            </div>
+          )}
+
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept=".mp3,.wav,.m4a,audio/mpeg,audio/wav,audio/mp4"
+            onChange={handleFileChange}
+            disabled={loading}
+            className="hidden"
+          />
+        </div>
+
+        {/* Title */}
+        <div>
+          <div className="mb-2 flex items-center justify-between">
+            <label
+              htmlFor="swar-title"
+              className="text-sm font-semibold text-gray-200"
+            >
+              Performance title
+            </label>
+            <span className="text-[10px] text-gray-600">
+              {title.length}/100
+            </span>
           </div>
 
-          {audioPreview && (
-            <SwarAudioPlayer key={audioPreview} src={audioPreview} compact />
-          )}
+          <input
+            id="swar-title"
+            type="text"
+            value={title}
+            onChange={(event) => setTitle(event.target.value)}
+            placeholder="Give your performance a name..."
+            maxLength={100}
+            required
+            disabled={loading}
+            className={inputClasses}
+          />
         </div>
-      )}
 
-      <input
-        ref={fileInputRef}
-        type="file"
-        accept=".mp3,.wav,.m4a,audio/mpeg,audio/wav,audio/mp4"
-        onChange={handleFileChange}
-        disabled={loading}
-        className="hidden"
-      />
-
-      {/* Title */}
-      <div className="mt-6">
-        <label
-          htmlFor="swar-title"
-          className="mb-2 block text-sm font-medium text-[#202020]"
-        >
-          Performance title
-        </label>
-
-        <input
-          id="swar-title"
-          type="text"
-          value={title}
-          onChange={(event) => setTitle(event.target.value)}
-          placeholder="Give your performance a name..."
-          maxLength={100}
-          required
-          disabled={loading}
-          className="w-full rounded-xl border border-[#EAE6E0] bg-white px-4 py-3 text-sm text-[#202020] outline-none transition placeholder:text-[#AAA39D] focus:border-[#E5092D] disabled:opacity-60"
-        />
-      </div>
-
-      {/* Category */}
-      <div className="mt-5">
-        <label
-          htmlFor="swar-category"
-          className="mb-2 block text-sm font-medium text-[#202020]"
-        >
-          Category
-        </label>
-
-        <select
-          id="swar-category"
-          value={category}
-          onChange={(event) => setCategory(event.target.value)}
-          disabled={loading}
-          className="w-full rounded-xl border border-[#EAE6E0] bg-white px-4 py-3 text-sm text-[#202020] outline-none transition focus:border-[#E5092D] disabled:opacity-60"
-        >
-          {CATEGORIES.map((item) => (
-            <option key={item.value} value={item.value}>
-              {item.label}
-            </option>
-          ))}
-        </select>
-      </div>
-
-      {/* Description */}
-      <div className="mt-5">
-        <div className="mb-2 flex items-center justify-between">
+        {/* Category */}
+        <div>
           <label
-            htmlFor="swar-description"
-            className="text-sm font-medium text-[#202020]"
+            htmlFor="swar-category"
+            className="mb-2 block text-sm font-semibold text-gray-200"
           >
-            Caption
+            Performance category
           </label>
 
-          <span className="text-xs text-[#AAA39D]">
-            {description.length}/500
-          </span>
+          <select
+            id="swar-category"
+            value={category}
+            onChange={(event) => setCategory(event.target.value)}
+            disabled={loading}
+            className={`${inputClasses} appearance-none cursor-pointer`}
+          >
+            {CATEGORIES.map((item) => (
+              <option
+                key={item.value}
+                value={item.value}
+                className="bg-[#08081D] text-white"
+              >
+                {item.label}
+              </option>
+            ))}
+          </select>
         </div>
 
-        <textarea
-          id="swar-description"
-          value={description}
-          onChange={(event) => setDescription(event.target.value)}
-          placeholder="Tell us something about your performance..."
-          maxLength={500}
-          rows={4}
-          disabled={loading}
-          className="w-full resize-none rounded-xl border border-[#EAE6E0] bg-white px-4 py-3 text-sm text-[#202020] outline-none transition placeholder:text-[#AAA39D] focus:border-[#E5092D] disabled:opacity-60"
-        />
-      </div>
+        {/* Description */}
+        <div>
+          <div className="mb-2 flex items-center justify-between">
+            <label
+              htmlFor="swar-description"
+              className="text-sm font-semibold text-gray-200"
+            >
+              Caption
+              <span className="ml-2 font-normal text-gray-500">(Optional)</span>
+            </label>
 
-      {/* Error */}
-      {error && (
-        <p
-          role="alert"
-          className="mt-4 rounded-xl border border-red-100 bg-red-50 px-4 py-3 text-sm text-red-600"
-        >
-          {error}
-        </p>
-      )}
+            <span className="text-[10px] text-gray-600">
+              {description.length}/500
+            </span>
+          </div>
 
-      {/* Submit */}
-      <button
-        type="submit"
-        disabled={loading || !audioFile || !title.trim()}
-        className="mt-6 flex w-full items-center justify-center gap-2 rounded-xl bg-[#E5092D] px-5 py-3.5 text-sm font-semibold text-white transition hover:bg-[#C90024] disabled:cursor-not-allowed disabled:opacity-50"
-      >
-        {loading ? (
-          <>
-            <LoaderCircle size={18} className="animate-spin" />
-            Uploading...
-          </>
-        ) : (
-          <>
-            <Music2 size={18} />
-            Share performance
-          </>
+          <textarea
+            id="swar-description"
+            value={description}
+            onChange={(event) => setDescription(event.target.value)}
+            placeholder="Tell us something about your performance..."
+            maxLength={500}
+            rows={4}
+            disabled={loading}
+            className={`${inputClasses} resize-none`}
+          />
+        </div>
+
+        {/* Error */}
+        {error && (
+          <div
+            role="alert"
+            className="rounded-xl border border-red-500/20 bg-red-500/[0.07] px-4 py-3 text-sm text-red-400"
+          >
+            {error}
+          </div>
         )}
-      </button>
+
+        {/* Submit */}
+        <div className="border-t border-white/[0.07] pt-5">
+          <button
+            type="submit"
+            disabled={loading || !audioFile || !title.trim()}
+            className="group flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-[#7C3AED] to-[#8B5CF6] px-5 py-3.5 text-sm font-bold text-white shadow-[0_5px_25px_rgba(139,92,246,0.18)] transition duration-300 hover:shadow-[0_5px_30px_rgba(139,92,246,0.35)] disabled:cursor-not-allowed disabled:opacity-40"
+          >
+            {loading ? (
+              <>
+                <LoaderCircle size={18} className="animate-spin" />
+                Uploading your performance...
+              </>
+            ) : (
+              <>
+                <Music2 size={18} />
+                Share performance
+                <Sparkles
+                  size={15}
+                  className="transition-transform group-hover:rotate-12"
+                />
+              </>
+            )}
+          </button>
+
+          <p className="mt-3 text-center text-[10px] tracking-wide text-gray-600">
+            YOUR VOICE. YOUR MUSIC. YOUR MOMENT.
+          </p>
+        </div>
+      </div>
     </form>
   );
 };

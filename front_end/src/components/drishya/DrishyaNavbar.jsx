@@ -263,7 +263,7 @@ const DrishyaNavbar = ({ onUpload, uploadingDisabled = false }) => {
             </span>
 
             <span className="mt-[3px] text-[11px] font-medium text-white/90 sm:text-[15px]">
-              प्रतिमा
+              प्रतिभा
             </span>
           </Link>
 

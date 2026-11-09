@@ -7,4 +7,18 @@ body {
 
 .font-orbitron {
   font-family: 'Orbitron', sans-serif;
+}/* Custom PRATIVA scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+/* Hide scrollbar but keep scrolling functional */
+* {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+*::-webkit-scrollbar {
+  display: none;
 }

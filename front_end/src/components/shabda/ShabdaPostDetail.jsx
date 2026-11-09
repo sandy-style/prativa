@@ -13,7 +13,7 @@ import {
   CalendarDays,
 } from "lucide-react";
 
-const API_URL = (import.meta.env.VITE_API_URL || "").replace(/\/$/, "");
+const API_URL = (import.meta.env.VITE_API_URL || "").replace(/\/+$/, "");
 
 const FONT_STYLES = {
   serif: '"Cormorant Garamond", Georgia, serif',
@@ -153,7 +153,10 @@ const ShabdaPostDetails = ({
     onPostUpdatedRef.current?.(updatedPost);
   }, []);
 
-  // Lock background scrolling and support Escape to close.
+  // ==========================================
+  // BODY SCROLL + ESCAPE
+  // ==========================================
+
   useEffect(() => {
     const previousOverflow = document.body.style.overflow;
 
@@ -173,7 +176,10 @@ const ShabdaPostDetails = ({
     };
   }, []);
 
-  // Load comments and viewer's like/save status.
+  // ==========================================
+  // LOAD COMMENTS, LIKE AND SAVE STATUS
+  // ==========================================
+
   useEffect(() => {
     if (!postId) return;
 
@@ -259,6 +265,10 @@ const ShabdaPostDetails = ({
     };
   }, [postId, updateComments, updatePost]);
 
+  // ==========================================
+  // LIKE
+  // ==========================================
+
   const handleLike = async () => {
     if (!postId || liking) return;
 
@@ -309,6 +319,10 @@ const ShabdaPostDetails = ({
     }
   };
 
+  // ==========================================
+  // BOOKMARK
+  // ==========================================
+
   const handleSave = async () => {
     if (!postId || saving) return;
 
@@ -343,6 +357,10 @@ const ShabdaPostDetails = ({
     }
   };
 
+  // ==========================================
+  // SUBMIT COMMENT
+  // ==========================================
+
   const handleSubmitComment = async (event) => {
     event.preventDefault();
 
@@ -369,11 +387,13 @@ const ShabdaPostDetails = ({
         throw new Error("The server did not return the created comment.");
       }
 
-      updateComments([...commentsRef.current, newComment]);
+      const nextComments = [...commentsRef.current, newComment];
+
+      updateComments(nextComments);
       setCommentText("");
 
       updatePost({
-        commentsCount: commentsRef.current.length,
+        commentsCount: nextComments.length,
       });
     } catch (error) {
       setActionError(getErrorMessage(error, "Unable to publish your comment."));
@@ -381,6 +401,10 @@ const ShabdaPostDetails = ({
       setSubmittingComment(false);
     }
   };
+
+  // ==========================================
+  // DELETE COMMENT
+  // ==========================================
 
   const handleDeleteComment = async (comment) => {
     const commentId = getCommentId(comment);
@@ -404,12 +428,14 @@ const ShabdaPostDetails = ({
 
     const previousComments = commentsRef.current;
 
-    updateComments(
-      previousComments.filter((item) => getCommentId(item) !== commentId),
+    const nextComments = previousComments.filter(
+      (item) => getCommentId(item) !== commentId,
     );
 
+    updateComments(nextComments);
+
     updatePost({
-      commentsCount: Math.max(0, previousComments.length - 1),
+      commentsCount: nextComments.length,
     });
 
     try {
@@ -446,27 +472,29 @@ const ShabdaPostDetails = ({
 
   return (
     <div
-      className="fixed inset-0 z-[100] flex items-center justify-center bg-[#171313]/65 p-0 backdrop-blur-md sm:p-5"
+      className="fixed inset-0 z-[100] flex items-center justify-center bg-[#080503]/85 p-0 backdrop-blur-md sm:p-5"
       onMouseDown={(event) => {
         if (event.target === event.currentTarget) {
           onCloseRef.current?.();
         }
       }}
     >
-      <div className="relative flex h-full w-full max-w-6xl flex-col overflow-hidden bg-[#F8F7F4] shadow-2xl sm:h-[min(90vh,850px)] sm:rounded-2xl">
-        {/* Header */}
-        <header className="relative z-10 flex shrink-0 items-center justify-between border-b border-[#EAE6E0] bg-white px-5 py-4 sm:px-7">
+      {/* MODAL */}
+      <div className="relative flex h-full w-full max-w-6xl flex-col overflow-hidden border border-[#F97316]/20 bg-[#17100B] shadow-[0_25px_90px_rgba(0,0,0,0.65),0_0_35px_rgba(249,115,22,0.07)] sm:h-[min(90vh,850px)] sm:rounded-2xl">
+        {/* HEADER */}
+        <header className="relative z-10 flex shrink-0 items-center justify-between border-b border-[#F97316]/15 bg-[#1D140D] px-5 py-3.5 sm:px-7">
           <div className="flex items-center gap-3">
-            <div className="flex h-9 w-9 items-center justify-center rounded-full bg-[#FCEAED] text-[#E5092D]">
+            <div className="flex h-9 w-9 items-center justify-center rounded-full border border-[#F97316]/25 bg-[#2A1B11] text-[#FB923C] shadow-[0_0_16px_rgba(249,115,22,0.08)]">
               <Feather size={17} />
             </div>
 
             <div>
-              <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-[#E5092D]">
-                Prativa
+              <p className="font-[Orbitron] text-[11px] font-bold uppercase tracking-[0.2em] text-[#FB923C]">
+                PRATIVA
               </p>
-              <p className="text-[10px] text-[#99918B]">
-                ShabdaManch · Written work
+
+              <p className="text-[10px] text-[#A9917C]">
+                Shabda Manch · Written work
               </p>
             </div>
           </div>
@@ -475,31 +503,34 @@ const ShabdaPostDetails = ({
             type="button"
             onClick={() => onCloseRef.current?.()}
             aria-label="Close post details"
-            className="flex h-9 w-9 items-center justify-center rounded-full text-[#99918B] transition hover:bg-[#FCEAED] hover:text-[#E5092D]"
+            className="flex h-9 w-9 items-center justify-center rounded-full border border-transparent text-[#A9917C] transition hover:border-[#F97316]/30 hover:bg-[#F97316]/10 hover:text-[#FB923C]"
           >
             <X size={19} />
           </button>
         </header>
 
-        {/* Main content */}
+        {/* MAIN CONTENT */}
         <div className="grid min-h-0 flex-1 grid-cols-1 lg:grid-cols-[minmax(0,1fr)_390px]">
-          {/* Full reading area */}
-          <main className="min-h-0 overflow-y-auto bg-[#F8F7F4] px-6 py-9 sm:px-10 sm:py-12 lg:px-14">
-            <article className="mx-auto max-w-2xl">
-              <div className="mb-8 flex items-center gap-2 text-[10px] font-semibold uppercase tracking-[0.22em] text-[#E5092D]">
+          {/* FULL READING AREA */}
+          <main className="relative min-h-0 overflow-y-auto bg-[#17100B] px-6 py-9 sm:px-10 sm:py-12 lg:px-14">
+            {/* READING AREA GLOW */}
+            <div className="pointer-events-none absolute -left-24 top-20 h-72 w-72 rounded-full bg-[#F97316]/[0.045] blur-[110px]" />
+
+            <article className="relative mx-auto max-w-2xl">
+              <div className="mb-8 flex items-center gap-2 text-[10px] font-semibold uppercase tracking-[0.22em] text-[#FB923C]">
                 <BookOpen size={14} />
                 <span>A piece of expression</span>
               </div>
 
               {post?.title && (
-                <h1 className="mb-7 text-3xl font-semibold leading-tight tracking-[-0.035em] text-[#292424] sm:text-4xl lg:text-[42px]">
+                <h1 className="mb-7 text-3xl font-semibold leading-tight tracking-[-0.035em] text-[#FFF3E8] sm:text-4xl lg:text-[42px]">
                   {post.title}
                 </h1>
               )}
 
-              {/* No line clamp or height restriction here */}
+              {/* FULL POST CONTENT */}
               <div
-                className="whitespace-pre-wrap break-words text-[17px] leading-[2.15] text-[#55504D] sm:text-[19px]"
+                className="whitespace-pre-wrap break-words text-[17px] leading-[2.15] text-[#E0CDBB] sm:text-[19px]"
                 style={{
                   fontFamily,
                   textAlign,
@@ -510,19 +541,20 @@ const ShabdaPostDetails = ({
               </div>
 
               {post?.description && (
-                <div className="mt-10 border-l-2 border-[#E5092D]/40 py-1 pl-4">
-                  <p className="text-sm leading-7 text-[#89817C]">
+                <div className="mt-10 border-l-2 border-[#F97316]/60 py-1 pl-4">
+                  <p className="text-sm leading-7 text-[#B9A18D]">
                     {post.description}
                   </p>
                 </div>
               )}
 
+              {/* TAGS */}
               {tags.length > 0 && (
                 <div className="mt-10 flex flex-wrap gap-2">
                   {tags.map((tag, index) => (
                     <span
                       key={`${tag}-${index}`}
-                      className="rounded-full bg-[#FCEAED] px-3 py-1.5 text-[11px] text-[#B83249]"
+                      className="rounded-full border border-[#F97316]/20 bg-[#F97316]/[0.07] px-3 py-1.5 text-[11px] font-medium text-[#FDBA74]"
                     >
                       #{tag}
                     </span>
@@ -530,27 +562,27 @@ const ShabdaPostDetails = ({
                 </div>
               )}
 
-              {/* Author information */}
-              <div className="mt-12 border-t border-[#EAE6E0] pt-6">
+              {/* AUTHOR INFORMATION */}
+              <div className="mt-12 border-t border-[#F97316]/15 pt-6">
                 <div className="flex items-center gap-3">
                   {authorImage ? (
                     <img
                       src={authorImage}
                       alt={authorName}
-                      className="h-11 w-11 rounded-full object-cover"
+                      className="h-11 w-11 rounded-full border border-[#F97316]/25 object-cover"
                     />
                   ) : (
-                    <div className="flex h-11 w-11 items-center justify-center rounded-full bg-[#FCEAED] text-sm font-semibold text-[#E5092D]">
+                    <div className="flex h-11 w-11 items-center justify-center rounded-full border border-[#F97316]/25 bg-[#2A1B11] text-sm font-semibold text-[#FDBA74]">
                       {getInitials(authorName)}
                     </div>
                   )}
 
                   <div className="min-w-0">
-                    <p className="truncate text-sm font-semibold text-[#34302E]">
+                    <p className="truncate text-sm font-semibold text-[#FFF3E8]">
                       {authorName}
                     </p>
 
-                    <div className="mt-1 flex flex-wrap items-center gap-2 text-[11px] text-[#99918B]">
+                    <div className="mt-1 flex flex-wrap items-center gap-2 text-[11px] text-[#A9917C]">
                       {username && <span>@{username}</span>}
 
                       {post?.createdAt && (
@@ -567,29 +599,30 @@ const ShabdaPostDetails = ({
             </article>
           </main>
 
-          {/* Interaction and comments panel */}
-          <aside className="flex min-h-0 flex-col border-t border-[#EAE6E0] bg-white lg:border-l lg:border-t-0">
-            {/* Post actions */}
-            <div className="shrink-0 border-b border-[#EAE6E0] px-5 py-5 sm:px-6">
+          {/* INTERACTION AND COMMENTS PANEL */}
+          <aside className="flex min-h-0 flex-col border-t border-[#F97316]/15 bg-[#1D140D] lg:border-l lg:border-t-0">
+            {/* POST ACTIONS */}
+            <div className="shrink-0 border-b border-[#F97316]/15 px-5 py-5 sm:px-6">
               <div className="flex items-center justify-between">
                 <button
                   type="button"
                   disabled={liking}
                   onClick={handleLike}
-                  className={`flex items-center gap-2 text-sm transition ${
+                  className={`flex items-center gap-2 text-sm transition disabled:opacity-50 ${
                     liked
-                      ? "text-[#E5092D]"
-                      : "text-[#99918B] hover:text-[#E5092D]"
+                      ? "text-[#FB923C]"
+                      : "text-[#B9A18D] hover:text-[#FB923C]"
                   }`}
                 >
                   <Heart size={19} fill={liked ? "currentColor" : "none"} />
-                  <span className="font-medium">{likesCount}</span>
+
+                  <span className="font-semibold">{likesCount}</span>
                   <span className="text-xs">Likes</span>
                 </button>
 
-                <div className="flex items-center gap-1.5 text-sm text-[#99918B]">
+                <div className="flex items-center gap-1.5 text-sm text-[#B9A18D]">
                   <MessageCircle size={18} />
-                  <span className="font-medium">{commentsCount}</span>
+                  <span className="font-semibold">{commentsCount}</span>
                   <span className="text-xs">Comments</span>
                 </div>
 
@@ -598,10 +631,10 @@ const ShabdaPostDetails = ({
                   disabled={saving}
                   onClick={handleSave}
                   aria-label={saved ? "Remove bookmark" : "Bookmark post"}
-                  className={`transition ${
+                  className={`transition disabled:opacity-50 ${
                     saved
-                      ? "text-[#E5092D]"
-                      : "text-[#99918B] hover:text-[#E5092D]"
+                      ? "text-[#FB923C]"
+                      : "text-[#B9A18D] hover:text-[#FB923C]"
                   }`}
                 >
                   <Bookmark size={19} fill={saved ? "currentColor" : "none"} />
@@ -609,49 +642,54 @@ const ShabdaPostDetails = ({
               </div>
 
               {actionError && (
-                <p className="mt-3 text-xs leading-relaxed text-red-600">
+                <p className="mt-3 rounded-lg border border-red-500/20 bg-red-500/[0.08] px-3 py-2 text-xs leading-relaxed text-red-300">
                   {actionError}
                 </p>
               )}
             </div>
 
-            {/* Comments heading */}
+            {/* COMMENTS HEADING */}
             <div className="shrink-0 px-5 pb-3 pt-5 sm:px-6">
-              <h2 className="text-sm font-semibold text-[#34302E]">
-                Conversation
-              </h2>
-              <p className="mt-1 text-[11px] text-[#99918B]">
+              <div className="flex items-center gap-2">
+                <MessageCircle size={15} className="text-[#FB923C]" />
+
+                <h2 className="text-sm font-semibold text-[#FFF3E8]">
+                  Conversation
+                </h2>
+              </div>
+
+              <p className="mt-1 text-[11px] text-[#A9917C]">
                 Thoughts shared around these words
               </p>
             </div>
 
-            {/* Comments list */}
+            {/* COMMENTS LIST */}
             <div className="min-h-0 flex-1 space-y-5 overflow-y-auto px-5 pb-5 sm:px-6">
               {loadingComments ? (
-                <div className="flex items-center justify-center gap-2 py-12 text-xs text-[#99918B]">
+                <div className="flex items-center justify-center gap-2 py-12 text-xs text-[#A9917C]">
                   <LoaderCircle
                     size={16}
-                    className="animate-spin text-[#E5092D]"
+                    className="animate-spin text-[#FB923C]"
                   />
                   Loading conversation...
                 </div>
               ) : commentsError ? (
-                <div className="py-8 text-center">
-                  <p className="text-xs leading-6 text-red-600">
+                <div className="rounded-xl border border-[#F97316]/15 bg-[#24180F] px-4 py-6 text-center">
+                  <p className="text-xs leading-6 text-[#FDBA74]">
                     {commentsError}
                   </p>
                 </div>
               ) : comments.length === 0 ? (
                 <div className="flex flex-col items-center justify-center py-12 text-center">
-                  <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-[#FCEAED] text-[#E5092D]">
+                  <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-full border border-[#F97316]/20 bg-[#2A1B11] text-[#FB923C]">
                     <MessageCircle size={20} />
                   </div>
 
-                  <p className="text-sm font-medium text-[#55504D]">
+                  <p className="text-sm font-semibold text-[#EBD5C2]">
                     No comments yet
                   </p>
 
-                  <p className="mt-1 max-w-[220px] text-xs leading-6 text-[#99918B]">
+                  <p className="mt-1 max-w-[220px] text-xs leading-6 text-[#A9917C]">
                     Start the conversation with a thoughtful response.
                   </p>
                 </div>
@@ -676,23 +714,23 @@ const ShabdaPostDetails = ({
                         <img
                           src={commentImage}
                           alt={commentName}
-                          className="h-8 w-8 shrink-0 rounded-full object-cover"
+                          className="h-8 w-8 shrink-0 rounded-full border border-[#F97316]/20 object-cover"
                           loading="lazy"
                         />
                       ) : (
-                        <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#FCEAED] text-[10px] font-semibold text-[#E5092D]">
+                        <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-[#F97316]/20 bg-[#2A1B11] text-[10px] font-semibold text-[#FDBA74]">
                           {getInitials(commentName)}
                         </div>
                       )}
 
-                      <div className="min-w-0 flex-1">
+                      <div className="min-w-0 flex-1 rounded-xl border border-[#F97316]/10 bg-[#24180F] px-3 py-2.5">
                         <div className="flex items-center justify-between gap-2">
-                          <p className="truncate text-xs font-semibold text-[#41403D]">
+                          <p className="truncate text-xs font-semibold text-[#FFF3E8]">
                             {commentName}
                           </p>
 
                           <div className="flex shrink-0 items-center gap-2">
-                            <span className="text-[10px] text-[#A09A94]">
+                            <span className="text-[10px] text-[#8F7A68]">
                               {formatDate(comment.createdAt)}
                             </span>
 
@@ -702,7 +740,7 @@ const ShabdaPostDetails = ({
                                 disabled={deletingCommentId === commentId}
                                 onClick={() => handleDeleteComment(comment)}
                                 aria-label="Delete comment"
-                                className="text-[#AAA39D] transition hover:text-[#E5092D] disabled:opacity-50"
+                                className="text-[#8F7A68] transition hover:text-[#FB923C] disabled:opacity-50"
                               >
                                 {deletingCommentId === commentId ? (
                                   <LoaderCircle
@@ -717,7 +755,7 @@ const ShabdaPostDetails = ({
                           </div>
                         </div>
 
-                        <p className="mt-1 whitespace-pre-wrap break-words text-xs leading-6 text-[#77716D]">
+                        <p className="mt-1 whitespace-pre-wrap break-words text-xs leading-6 text-[#D5C0AC]">
                           {getCommentContent(comment)}
                         </p>
                       </div>
@@ -727,12 +765,12 @@ const ShabdaPostDetails = ({
               )}
             </div>
 
-            {/* Comment input */}
+            {/* COMMENT INPUT */}
             <form
               onSubmit={handleSubmitComment}
-              className="shrink-0 border-t border-[#EAE6E0] bg-white p-4 sm:px-5"
+              className="shrink-0 border-t border-[#F97316]/15 bg-[#19110B] p-4 sm:px-5"
             >
-              <div className="flex items-end gap-2 rounded-xl border border-[#EAE6E0] bg-[#FAF9F7] px-3 py-2 transition focus-within:border-[#E5092D]/50">
+              <div className="flex items-end gap-2 rounded-xl border border-[#F97316]/20 bg-[#24180F] px-3 py-2 transition focus-within:border-[#FB923C]/60 focus-within:ring-2 focus-within:ring-[#F97316]/10">
                 <textarea
                   value={commentText}
                   onChange={(event) => setCommentText(event.target.value)}
@@ -749,14 +787,14 @@ const ShabdaPostDetails = ({
                   placeholder="Share your thoughts..."
                   rows={1}
                   maxLength={2000}
-                  className="max-h-28 min-h-[38px] flex-1 resize-y bg-transparent py-2 text-xs leading-5 text-[#41403D] outline-none placeholder:text-[#AAA39D]"
+                  className="max-h-28 min-h-[38px] flex-1 resize-y bg-transparent py-2 text-xs leading-5 text-[#FFF3E8] outline-none placeholder:text-[#8F7A68]"
                 />
 
                 <button
                   type="submit"
                   disabled={!commentText.trim() || submittingComment}
                   aria-label="Send comment"
-                  className="mb-1 flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#E5092D] text-white transition hover:bg-[#C90024] disabled:cursor-not-allowed disabled:opacity-40"
+                  className="mb-1 flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#F97316] text-white shadow-[0_0_14px_rgba(249,115,22,0.18)] transition hover:bg-[#EA650F] hover:shadow-[0_0_20px_rgba(249,115,22,0.3)] disabled:cursor-not-allowed disabled:opacity-40"
                 >
                   {submittingComment ? (
                     <LoaderCircle size={15} className="animate-spin" />
@@ -766,7 +804,7 @@ const ShabdaPostDetails = ({
                 </button>
               </div>
 
-              <p className="mt-2 text-right text-[10px] text-[#AAA39D]">
+              <p className="mt-2 text-right text-[10px] text-[#8F7A68]">
                 {commentText.length}/2000 · Enter to send
               </p>
             </form>

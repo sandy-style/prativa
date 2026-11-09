@@ -1,22 +1,27 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Heart, MessageCircle, Bookmark, Music2 } from "lucide-react";
-
-import SwarAudioPlayer from "./SwarAudioPlayer";
+import {
+  Heart,
+  MessageCircle,
+  Bookmark,
+  Music2,
+  Play,
+  Pause,
+  AudioLines,
+} from "lucide-react";
 
 const DEFAULT_AVATAR =
   "https://res.cloudinary.com/demo/image/upload/v1/default-avatar.png";
 
-// Safely extract a user ID from populated or unpopulated references.
+// Safely extract a user ID.
 const getUserId = (user) => {
   if (!user) return null;
-
   if (typeof user === "string") return user;
 
   return user._id || user.id || null;
 };
 
-// Safely extract the audio URL.
+// Extract audio URL.
 const getAudioUrl = (post) => {
   if (!post) return null;
 
@@ -32,35 +37,69 @@ const getAudioUrl = (post) => {
   return post.audioUrl || post.mediaUrl || null;
 };
 
-// Safely format the post date.
-const formatDate = (date) => {
-  if (!date) return "";
+// Extract artwork URL.
+const getArtworkUrl = (post) => {
+  if (!post) return null;
 
-  const value = new Date(date);
+  const artwork =
+    post.coverImage ||
+    post.thumbnail ||
+    post.artwork ||
+    post.image ||
+    post.media?.thumbnail ||
+    post.media?.coverImage;
 
-  if (Number.isNaN(value.getTime())) return "";
+  if (typeof artwork === "string") return artwork;
+  if (typeof artwork?.url === "string") return artwork.url;
 
-  return value.toLocaleDateString("en", {
-    month: "short",
-    day: "numeric",
-  });
+  return null;
 };
 
-// Safely format engagement counts.
-const getCount = (value) => {
+// Format engagement counts.
+const formatCount = (value) => {
   const count = Number(value);
 
-  return Number.isFinite(count) && count >= 0 ? count : 0;
+  if (!Number.isFinite(count) || count < 0) return "0";
+
+  if (count >= 1000000) {
+    return `${(count / 1000000).toFixed(1).replace(/\.0$/, "")}M`;
+  }
+
+  if (count >= 1000) {
+    return `${(count / 1000).toFixed(1).replace(/\.0$/, "")}K`;
+  }
+
+  return String(count);
+};
+
+// Format audio duration.
+const formatDuration = (value) => {
+  if (typeof value === "string" && value.includes(":")) {
+    return value;
+  }
+
+  const seconds = Number(value);
+
+  if (!Number.isFinite(seconds) || seconds <= 0) return null;
+
+  const minutes = Math.floor(seconds / 60);
+  const remainingSeconds = Math.floor(seconds % 60);
+
+  return `${minutes}:${String(remainingSeconds).padStart(2, "0")}`;
 };
 
 const SwarPostCard = ({ post, onClick, onLike, onComment, onSave }) => {
   const navigate = useNavigate();
+  const audioRef = useRef(null);
 
   const [imageError, setImageError] = useState(false);
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [audioError, setAudioError] = useState(false);
 
   if (!post) return null;
 
   const audioUrl = getAudioUrl(post);
+  const artworkUrl = getArtworkUrl(post);
 
   // Creator information.
   const author =
@@ -86,16 +125,35 @@ const SwarPostCard = ({ post, onClick, onLike, onComment, onSave }) => {
   const isLiked = Boolean(post.isLiked);
   const isSaved = Boolean(post.isSaved);
 
-  const likesCount = getCount(post.likesCount ?? post.likes?.length);
+  const likesCount = Number(post.likesCount ?? post.likes?.length ?? 0);
 
-  const commentsCount = getCount(post.commentsCount ?? post.comments?.length);
+  const commentsCount = Number(
+    post.commentsCount ?? post.comments?.length ?? 0,
+  );
 
-  const formattedDate = formatDate(post.createdAt);
+  const playsCount = Number(
+    post.playsCount ?? post.playCount ?? post.plays ?? post.viewsCount ?? 0,
+  );
 
-  // Reset image fallback when the profile image changes.
+  const duration = formatDuration(
+    post.duration || post.audioDuration || post.metadata?.duration,
+  );
+
+  // Reset artwork fallback when artwork changes.
   useEffect(() => {
     setImageError(false);
-  }, [profileImage]);
+  }, [artworkUrl]);
+
+  // Reset audio state when audio changes.
+  useEffect(() => {
+    setIsPlaying(false);
+    setAudioError(false);
+
+    if (audioRef.current) {
+      audioRef.current.pause();
+      audioRef.current.currentTime = 0;
+    }
+  }, [audioUrl]);
 
   // Navigate to creator profile.
   const openProfile = (event) => {
@@ -106,7 +164,7 @@ const SwarPostCard = ({ post, onClick, onLike, onComment, onSave }) => {
     }
   };
 
-  // Open the post detail component.
+  // Open post details.
   const openPost = () => {
     onClick?.(post);
   };
@@ -129,140 +187,217 @@ const SwarPostCard = ({ post, onClick, onLike, onComment, onSave }) => {
     callback?.(post);
   };
 
+  // Play / pause audio.
+  const togglePlayback = async (event) => {
+    event.preventDefault();
+    event.stopPropagation();
+
+    const audio = audioRef.current;
+
+    if (!audio || !audioUrl || audioError) return;
+
+    if (audio.paused) {
+      try {
+        await audio.play();
+        setIsPlaying(true);
+      } catch {
+        setIsPlaying(false);
+        setAudioError(true);
+      }
+    } else {
+      audio.pause();
+      setIsPlaying(false);
+    }
+  };
+
+  const handleAudioEnded = () => {
+    setIsPlaying(false);
+  };
+
+  const handleAudioError = () => {
+    setIsPlaying(false);
+    setAudioError(true);
+  };
+
   return (
     <article
       onClick={openPost}
       onKeyDown={handleCardKeyDown}
       tabIndex={onClick ? 0 : undefined}
-      aria-label={onClick ? `Open post by ${creatorName}` : undefined}
-      className={`group w-full overflow-hidden rounded-2xl border border-[#EAE6E0] bg-white p-5 transition-all duration-300 hover:shadow-md ${
+      aria-label={
         onClick
-          ? "cursor-pointer hover:-translate-y-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#E5092D]"
+          ? `Open ${post.title || "performance"} by ${creatorName}`
+          : undefined
+      }
+      className={`group relative isolate aspect-[1.18/1] min-h-[245px] w-full overflow-hidden rounded-2xl border border-[#8B5CF6]/25 bg-[#08091D] transition-all duration-300 hover:-translate-y-1 hover:border-[#8B5CF6]/70 hover:shadow-[0_12px_35px_rgba(91,33,182,0.18)] ${
+        onClick
+          ? "cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#A78BFA]"
           : ""
       }`}
     >
-      {/* Creator information */}
-      <div className="mb-5 flex items-center gap-3">
+      {/* Artwork */}
+      {artworkUrl && !imageError ? (
+        <img
+          src={artworkUrl}
+          alt=""
+          onError={() => setImageError(true)}
+          loading="lazy"
+          className="absolute inset-0 h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
+        />
+      ) : (
+        <div className="absolute inset-0 overflow-hidden bg-gradient-to-br from-[#171044] via-[#10102C] to-[#030817]">
+          <div className="absolute -right-10 -top-12 h-48 w-48 rounded-full bg-[#8B5CF6]/20 blur-3xl" />
+          <div className="absolute -bottom-16 -left-10 h-48 w-48 rounded-full bg-[#00D4FF]/10 blur-3xl" />
+
+          <div className="absolute inset-0 flex items-center justify-center text-[#A78BFA]/30">
+            <AudioLines size={100} strokeWidth={0.8} />
+          </div>
+
+          <div className="absolute left-5 top-5 rounded-full border border-white/10 bg-black/20 p-3 text-[#A78BFA]/60">
+            <Music2 size={22} />
+          </div>
+        </div>
+      )}
+
+      {/* Cinematic gradient overlay */}
+      <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-[#030817]/25 via-transparent to-[#030817]/95" />
+
+      <div className="pointer-events-none absolute inset-0 bg-gradient-to-r from-[#030817]/25 via-transparent to-transparent" />
+
+      {/* Top section */}
+      <div className="absolute inset-x-0 top-0 flex items-start justify-between p-4">
+        <span className="max-w-[70%] truncate rounded-full border border-white/10 bg-[#05051A]/50 px-3 py-1 text-[10px] font-semibold uppercase tracking-wider text-[#DDD0FF] opacity-0 backdrop-blur-md transition-opacity duration-300 group-hover:opacity-100">
+          {post.categoryLabel || post.category || "Music"}
+        </span>
+
+        {/* Play button */}
         <button
           type="button"
-          onClick={openProfile}
-          disabled={!creatorId}
-          aria-label={`View ${creatorName}'s profile`}
-          className="h-11 w-11 shrink-0 overflow-hidden rounded-full bg-[#F8F7F4] disabled:cursor-default"
+          onClick={togglePlayback}
+          disabled={!audioUrl || audioError}
+          aria-label={isPlaying ? "Pause performance" : "Play performance"}
+          className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-[#C4B5FD]/70 bg-[#08081D]/65 text-white shadow-[0_0_15px_rgba(139,92,246,0.2)] backdrop-blur-md transition-all duration-300 hover:scale-110 hover:border-[#C4B5FD] hover:bg-[#8B5CF6] hover:shadow-[0_0_25px_rgba(139,92,246,0.55)] disabled:cursor-not-allowed disabled:opacity-40"
         >
-          <img
-            src={imageError ? DEFAULT_AVATAR : profileImage}
-            alt=""
-            onError={() => setImageError(true)}
-            className="h-full w-full object-cover"
-            loading="lazy"
-          />
+          {isPlaying ? (
+            <Pause size={19} fill="currentColor" />
+          ) : (
+            <Play size={19} fill="currentColor" className="ml-0.5" />
+          )}
         </button>
+      </div>
 
-        <div className="min-w-0 flex-1">
+      {/* Hidden audio element */}
+      {audioUrl && (
+        <audio
+          ref={audioRef}
+          src={audioUrl}
+          preload="none"
+          onEnded={handleAudioEnded}
+          onError={handleAudioError}
+        />
+      )}
+
+      {/* Bottom content */}
+      <div className="absolute inset-x-0 bottom-0 p-4 sm:p-5">
+        {/* Creator */}
+        <div className="mb-3 min-w-0">
+          <h3 className="truncate text-lg font-bold leading-tight tracking-tight text-white drop-shadow-lg sm:text-xl">
+            {post.title || "Untitled performance"}
+          </h3>
+
           <button
             type="button"
             onClick={openProfile}
             disabled={!creatorId}
-            className="block max-w-full truncate text-left text-sm font-semibold text-[#202020] transition hover:text-[#E5092D] disabled:cursor-default"
+            className="mt-1 block max-w-full truncate text-left text-sm text-white/75 transition hover:text-[#C4B5FD] disabled:cursor-default"
           >
-            {creatorName}
+            by {creatorName}
           </button>
+        </div>
 
-          <div className="mt-0.5 flex items-center gap-2 text-xs text-[#99918B]">
-            <span className="truncate">@{username}</span>
+        {/* Engagement */}
+        <div className="flex items-center justify-between gap-3">
+          <div className="flex items-center gap-4">
+            {/* Plays */}
+            <div
+              className="flex items-center gap-1.5 text-xs text-white/80"
+              title="Plays"
+            >
+              <Play size={16} className="text-[#C4B5FD]" fill="currentColor" />
+              <span>{formatCount(playsCount)}</span>
+            </div>
 
-            {formattedDate && (
-              <>
-                <span>·</span>
-                <time dateTime={post.createdAt}>{formattedDate}</time>
-              </>
-            )}
+            {/* Likes */}
+            <button
+              type="button"
+              onClick={(event) => handleAction(event, onLike)}
+              aria-label={isLiked ? "Unlike performance" : "Like performance"}
+              aria-pressed={isLiked}
+              className={`flex items-center gap-1.5 text-xs transition ${
+                isLiked
+                  ? "text-[#FF4DB8]"
+                  : "text-white/80 hover:text-[#FF4DB8]"
+              }`}
+            >
+              <Heart size={18} fill={isLiked ? "currentColor" : "none"} />
+              <span>{formatCount(likesCount)}</span>
+            </button>
+
+            {/* Comments */}
+            <button
+              type="button"
+              onClick={(event) => handleAction(event, onComment)}
+              aria-label="View comments"
+              className="flex items-center gap-1.5 text-xs text-white/75 transition hover:text-[#C4B5FD]"
+            >
+              <MessageCircle size={17} />
+              <span>{formatCount(commentsCount)}</span>
+            </button>
           </div>
+
+          {/* Duration */}
+          {duration && (
+            <span className="shrink-0 rounded-full border border-[#A78BFA]/40 bg-[#08081D]/70 px-2.5 py-1 text-[10px] font-medium text-white/90 backdrop-blur-md">
+              {duration}
+            </span>
+          )}
+
+          {/* Bookmark */}
+          {onSave && (
+            <button
+              type="button"
+              onClick={(event) => handleAction(event, onSave)}
+              aria-label={
+                isSaved ? "Remove saved performance" : "Save performance"
+              }
+              aria-pressed={isSaved}
+              className={`rounded-full p-1.5 transition ${
+                isSaved
+                  ? "text-[#A78BFA]"
+                  : "text-white/70 hover:text-[#A78BFA]"
+              }`}
+            >
+              <Bookmark size={17} fill={isSaved ? "currentColor" : "none"} />
+            </button>
+          )}
         </div>
       </div>
 
-      {/* Audio performance */}
-      <div
-        className="mb-4 rounded-xl border border-[#EAE6E0] bg-[#F8F7F4] p-4"
-        onClick={(event) => event.stopPropagation()}
-        onKeyDown={(event) => event.stopPropagation()}
-      >
-        <div className="mb-4 flex items-center gap-3">
-          <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-[#E5092D]/[0.08] text-[#E5092D]">
-            <Music2 size={22} strokeWidth={1.8} />
-          </div>
-
-          <div className="min-w-0 flex-1">
-            <h3 className="truncate text-sm font-semibold text-[#202020]">
-              {post.title || "Untitled performance"}
-            </h3>
-
-            <p className="mt-1 text-xs text-[#99918B]">
-              {post.categoryLabel || post.category || "Audio performance"}
-            </p>
-          </div>
+      {/* Playing indicator */}
+      {isPlaying && (
+        <div className="absolute bottom-[76px] right-4 flex items-end gap-[3px]">
+          {[1, 2, 3, 4, 5].map((bar) => (
+            <span
+              key={bar}
+              className="w-[3px] animate-pulse rounded-full bg-[#A78BFA]"
+              style={{
+                height: `${8 + (bar % 3) * 5}px`,
+                animationDelay: `${bar * 100}ms`,
+              }}
+            />
+          ))}
         </div>
-
-        {audioUrl ? (
-          <SwarAudioPlayer key={audioUrl} src={audioUrl} compact />
-        ) : (
-          <p className="text-xs text-[#99918B]">
-            Audio is currently unavailable.
-          </p>
-        )}
-      </div>
-
-      {/* Caption / Description */}
-      {(post.description || post.content) && (
-        <p className="mb-5 whitespace-pre-wrap break-words text-sm leading-6 text-[#66615D]">
-          {post.description || post.content}
-        </p>
       )}
-
-      {/* Post actions */}
-      <div className="flex items-center justify-between border-t border-[#EAE6E0] pt-4">
-        <div className="flex items-center gap-5">
-          {/* Like */}
-          <button
-            type="button"
-            onClick={(event) => handleAction(event, onLike)}
-            aria-label={isLiked ? "Unlike post" : "Like post"}
-            aria-pressed={isLiked}
-            className={`flex items-center gap-1.5 text-sm transition ${
-              isLiked ? "text-[#E5092D]" : "text-[#99918B] hover:text-[#E5092D]"
-            }`}
-          >
-            <Heart size={19} fill={isLiked ? "currentColor" : "none"} />
-
-            <span>{likesCount}</span>
-          </button>
-
-          {/* Comments */}
-          <button
-            type="button"
-            onClick={(event) => handleAction(event, onComment)}
-            aria-label="View comments"
-            className="flex items-center gap-1.5 text-sm text-[#99918B] transition hover:text-[#E5092D]"
-          >
-            <MessageCircle size={19} />
-            <span>{commentsCount}</span>
-          </button>
-        </div>
-
-        {/* Bookmark */}
-        <button
-          type="button"
-          onClick={(event) => handleAction(event, onSave)}
-          aria-label={isSaved ? "Remove saved post" : "Save post"}
-          aria-pressed={isSaved}
-          className={`rounded-full p-2 transition ${
-            isSaved ? "text-[#E5092D]" : "text-[#99918B] hover:text-[#E5092D]"
-          }`}
-        >
-          <Bookmark size={19} fill={isSaved ? "currentColor" : "none"} />
-        </button>
-      </div>
     </article>
   );
 };

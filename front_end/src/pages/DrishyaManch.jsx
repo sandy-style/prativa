@@ -683,7 +683,7 @@ const DrishyaManch = () => {
           <img
             src={drishyaHero}
             alt="Drishya Manch"
-            className="block h-auto max-h-[400px] min-h-[240px] w-full object-cover object-center"
+            className="block h-auto max-h-[350px] min-h-[240px] w-full object-cover object-center"
           />
           <div className="absolute inset-0 pointer-events-none bg-[linear-gradient(90deg,rgba(3,10,23,0.98)_0%,rgba(3,10,23,0.78)_30%,rgba(3,10,23,0.35)_60%,transparent_100%)]" />
 
@@ -703,6 +703,17 @@ const DrishyaManch = () => {
 
             {/* TITLE + TAGLINE */}
             <div className="flex flex-col">
+              <p
+                className="
+          mt-3 font-[Orbitron] font-medium
+          text-[10px] tracking-[0.2em]
+          text-[#8DEFFF]
+          sm:mt-4 sm:text-sm md:text-base
+        "
+              >
+                Beauty of vision
+              </p>
+
               <h1
                 className="
           font-[Orbitron] font-bold uppercase

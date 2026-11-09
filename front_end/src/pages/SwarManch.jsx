@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import axios from "axios";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useNavigationType } from "react-router-dom";
 import {
   Search,
   SlidersHorizontal,
@@ -12,12 +12,16 @@ import {
   Music2,
   Guitar,
   AudioLines,
+  X,
 } from "lucide-react";
+
+import swarHero from "../assets/swarhero.png";
 
 import { useAuth } from "../context/AuthContext";
 import SwarFeed from "../components/swar/SwarFeed";
 import SwarUpload from "../components/swar/SwarUpload";
 import SwarPostDetail from "../components/swar/SwarPostDetail";
+import SwarNavbar from "../components/swar/SwarNavbar";
 import CreateProfile from "../components/CreateProfile";
 
 const API_URL = import.meta.env.VITE_API_URL?.replace(/\/+$/, "");
@@ -83,7 +87,6 @@ const getArchiveCategory = (text = "") => {
   return "vocals";
 };
 
-// Extract like status from the existing like API response.
 const getLikeStatus = (data) => {
   if (typeof data === "boolean") return data;
 
@@ -93,8 +96,6 @@ const getLikeStatus = (data) => {
   return typeof status === "boolean" ? status : null;
 };
 
-// Load the current user's like status for a post.
-// Uses the same endpoint as SwarPostDetail.
 const fetchPostLikeStatus = async (post) => {
   if (!post?._id || post.isDemo) return post;
 
@@ -105,14 +106,9 @@ const fetchPostLikeStatus = async (post) => {
 
     const isLiked = getLikeStatus(response.data);
 
-    if (isLiked === null) {
-      return post;
-    }
+    if (isLiked === null) return post;
 
-    return {
-      ...post,
-      isLiked,
-    };
+    return { ...post, isLiked };
   } catch (error) {
     console.warn(
       `Unable to fetch like status for post ${post._id}:`,
@@ -123,12 +119,14 @@ const fetchPostLikeStatus = async (post) => {
   }
 };
 
-// Hydrate posts with their actual like status.
 const hydrateLikeStatuses = async (posts) => {
   return Promise.all(posts.map(fetchPostLikeStatus));
 };
 
-// Temporary public audio from Internet Archive.
+// ==========================================
+// INTERNET ARCHIVE FALLBACK
+// ==========================================
+
 const fetchArchivePerformances = async () => {
   const searchResponse = await axios.get(ARCHIVE_API, {
     params: {
@@ -234,8 +232,129 @@ const fetchArchivePerformances = async () => {
   return performances.filter(Boolean);
 };
 
+// ==========================================
+// SWAR INTRO LOADER
+// ==========================================
+
+const SwarIntroLoader = () => (
+  <div className="swar-loader fixed inset-0 z-[200] flex min-h-screen items-center justify-center overflow-hidden bg-[#05051A]">
+    <div className="pointer-events-none absolute inset-0">
+      <div className="absolute left-1/2 top-1/2 h-[420px] w-[420px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[#8B5CF6]/[0.08] blur-[120px]" />
+
+      <div className="absolute inset-0 opacity-[0.035] [background-image:linear-gradient(rgba(139,92,246,0.5)_1px,transparent_1px),linear-gradient(90deg,rgba(139,92,246,0.5)_1px,transparent_1px)] [background-size:70px_70px]" />
+    </div>
+
+    <div className="relative z-10 flex flex-col items-center px-6 text-center">
+      <div className="relative mb-9 flex h-32 w-32 items-center justify-center">
+        <div className="swar-outer-ring absolute inset-0 rounded-full border border-dashed border-[#8B5CF6]/30" />
+
+        <div className="swar-middle-ring absolute inset-3 rounded-full border border-[#8B5CF6]/20" />
+
+        <div className="absolute inset-7 rounded-full border border-[#8B5CF6]/40 bg-[#100C2A] shadow-[0_0_45px_rgba(139,92,246,0.15)]" />
+
+        <AudioLines
+          size={55}
+          strokeWidth={1.2}
+          className="swar-aperture relative z-10 text-[#A78BFA]"
+        />
+      </div>
+
+      <div className="space-y-3">
+        <div className="flex items-center justify-center gap-2 text-[#A78BFA]">
+          <Music2 size={16} />
+
+          <span className="text-[10px] font-semibold uppercase tracking-[0.4em]">
+            PRATIVA
+          </span>
+        </div>
+
+        <h1 className="font-[Orbitron] text-3xl font-semibold tracking-[0.1em] text-white sm:text-4xl">
+          SWAR <span className="text-[#A78BFA]">MANCH</span>
+        </h1>
+
+        <p className="text-sm text-[#A5A0BC]">Every melody has a story.</p>
+      </div>
+
+      <div className="mt-10 w-44">
+        <div className="mb-3 flex items-center justify-between">
+          <span className="text-[9px] uppercase tracking-[0.2em] text-[#77718F]">
+            Tuning into melodies
+          </span>
+
+          <AudioLines size={14} className="text-[#A78BFA]" />
+        </div>
+
+        <div className="h-[2px] overflow-hidden rounded-full bg-white/10">
+          <div className="swar-progress h-full rounded-full bg-[#A78BFA]" />
+        </div>
+      </div>
+    </div>
+
+    <style>{`
+      .swar-loader {
+        animation: swarFadeIn 0.4s ease-out both;
+      }
+
+      .swar-outer-ring {
+        animation: swarRotate 12s linear infinite;
+      }
+
+      .swar-middle-ring {
+        animation: swarRotateReverse 8s linear infinite;
+      }
+
+      .swar-aperture {
+        animation: swarPulse 2s ease-in-out infinite;
+      }
+
+      .swar-progress {
+        width: 35%;
+        animation: swarProgress 1.7s ease-in-out infinite;
+      }
+
+      @keyframes swarRotate {
+        to { transform: rotate(360deg); }
+      }
+
+      @keyframes swarRotateReverse {
+        from { transform: rotate(360deg); }
+        to { transform: rotate(0deg); }
+      }
+
+      @keyframes swarPulse {
+        0%, 100% { transform: scale(0.94); opacity: 0.75; }
+        50% { transform: scale(1.06); opacity: 1; }
+      }
+
+      @keyframes swarProgress {
+        0% { transform: translateX(-120%); }
+        100% { transform: translateX(390%); }
+      }
+
+      @keyframes swarFadeIn {
+        from { opacity: 0; }
+        to { opacity: 1; }
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        .swar-outer-ring,
+        .swar-middle-ring,
+        .swar-aperture,
+        .swar-progress {
+          animation: none;
+        }
+      }
+    `}</style>
+  </div>
+);
+
+// ==========================================
+// SWAR MANCH PAGE
+// ==========================================
+
 const SwarManch = () => {
   const navigate = useNavigate();
+  const navigationType = useNavigationType();
 
   const {
     isAuthenticated,
@@ -248,6 +367,12 @@ const SwarManch = () => {
   const [posts, setPosts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
+
+  const [showIntroLoader, setShowIntroLoader] = useState(
+    navigationType === "PUSH",
+  );
+
+  const [introMinimumElapsed, setIntroMinimumElapsed] = useState(false);
 
   const [error, setError] = useState("");
   const [loadMoreError, setLoadMoreError] = useState("");
@@ -262,12 +387,36 @@ const SwarManch = () => {
   const [refreshKey, setRefreshKey] = useState(0);
   const [showUpload, setShowUpload] = useState(false);
   const [showCreateProfile, setShowCreateProfile] = useState(false);
+  const [isArchiveMode, setIsArchiveMode] = useState(false);
 
   const [selectedPost, setSelectedPost] = useState(null);
 
   const likingPosts = useRef(new Set());
 
-  // Upload action.
+  // ==========================================
+  // INTRO LOADER TIMING
+  // ==========================================
+
+  useEffect(() => {
+    if (!showIntroLoader) return;
+
+    const timer = window.setTimeout(() => {
+      setIntroMinimumElapsed(true);
+    }, 1700);
+
+    return () => window.clearTimeout(timer);
+  }, [showIntroLoader]);
+
+  useEffect(() => {
+    if (showIntroLoader && !loading && introMinimumElapsed) {
+      setShowIntroLoader(false);
+    }
+  }, [showIntroLoader, loading, introMinimumElapsed]);
+
+  // ==========================================
+  // UPLOAD AUTHENTICATION
+  // ==========================================
+
   const handleUploadClick = () => {
     if (authLoading || profileLoading) return;
 
@@ -297,7 +446,10 @@ const SwarManch = () => {
     }
   };
 
-  // Load Prativa performances.
+  // ==========================================
+  // FETCH PERFORMANCES
+  // ==========================================
+
   useEffect(() => {
     let cancelled = false;
 
@@ -334,13 +486,14 @@ const SwarManch = () => {
         const fetchedPosts = (response.data.posts || []).filter(isAudioPost);
 
         if (fetchedPosts.length > 0) {
-          // Get each post's actual like status before showing the feed.
           const postsWithLikeStatus = await hydrateLikeStatuses(fetchedPosts);
 
           if (cancelled) return;
 
           setPosts(postsWithLikeStatus);
+          setIsArchiveMode(false);
           setHasMore(Boolean(response.data.pagination?.hasMore));
+
           return;
         }
 
@@ -349,10 +502,15 @@ const SwarManch = () => {
         if (cancelled) return;
 
         setPosts(archivePosts);
+        setIsArchiveMode(true);
+
+        if (archivePosts.length === 0) {
+          setError("No audio performances are available right now.");
+        }
       } catch (err) {
         if (cancelled) return;
 
-        console.error("SwarManch fetch error:", err);
+        console.warn("Using Swar Archive content:", err.message);
 
         try {
           const archivePosts = await fetchArchivePerformances();
@@ -360,6 +518,7 @@ const SwarManch = () => {
           if (cancelled) return;
 
           setPosts(archivePosts);
+          setIsArchiveMode(true);
 
           if (archivePosts.length === 0) {
             setError("No audio performances are available right now.");
@@ -370,6 +529,7 @@ const SwarManch = () => {
           console.error("Internet Archive fetch error:", archiveError);
 
           setPosts([]);
+          setIsArchiveMode(false);
           setError("Unable to load performances. Please try again later.");
         }
       } finally {
@@ -386,9 +546,14 @@ const SwarManch = () => {
     };
   }, [activeCategory, sort, refreshKey]);
 
-  // Load more posts.
+  // ==========================================
+  // LOAD MORE
+  // ==========================================
+
   const handleLoadMore = async () => {
-    if (loadingMore || loading || !hasMore || !API_URL) return;
+    if (loadingMore || loading || !hasMore || !API_URL || isArchiveMode) {
+      return;
+    }
 
     const nextPage = page + 1;
 
@@ -439,7 +604,10 @@ const SwarManch = () => {
     }
   };
 
-  // Keep feed and detail modal synchronized.
+  // ==========================================
+  // UPDATE POST
+  // ==========================================
+
   const updatePostEverywhere = (postId, updates) => {
     setPosts((previous) =>
       previous.map((post) =>
@@ -452,8 +620,10 @@ const SwarManch = () => {
     );
   };
 
-  // Handle likes.
-  // SwarFeed passes a complete post object, not just its ID.
+  // ==========================================
+  // LIKE / UNLIKE
+  // ==========================================
+
   const handleLike = async (postOrId) => {
     const postId = typeof postOrId === "object" ? postOrId?._id : postOrId;
 
@@ -463,7 +633,6 @@ const SwarManch = () => {
 
     if (!targetPost) return;
 
-    // Demo tracks use local-only likes.
     if (targetPost.isDemo) {
       updatePostEverywhere(postId, {
         isLiked: !targetPost.isLiked,
@@ -481,7 +650,6 @@ const SwarManch = () => {
     const wasLiked = Boolean(targetPost.isLiked);
     const previousCount = targetPost.likesCount || 0;
 
-    // Optimistic update.
     updatePostEverywhere(postId, {
       isLiked: !wasLiked,
       likesCount: Math.max(0, previousCount + (wasLiked ? -1 : 1)),
@@ -516,7 +684,6 @@ const SwarManch = () => {
         updatePostEverywhere(postId, updates);
       }
     } catch (err) {
-      // Roll back if the API request fails.
       updatePostEverywhere(postId, {
         isLiked: wasLiked,
         likesCount: previousCount,
@@ -528,7 +695,10 @@ const SwarManch = () => {
     }
   };
 
-  // Filter and search posts.
+  // ==========================================
+  // SEARCH AND FILTER
+  // ==========================================
+
   const filteredPosts = useMemo(() => {
     let result = [...posts];
 
@@ -568,7 +738,10 @@ const SwarManch = () => {
     setActiveCategory("all");
   };
 
-  // Upload audio performance.
+  // ==========================================
+  // AUDIO UPLOAD
+  // ==========================================
+
   const handleAudioUpload = async ({ file, title, description, category }) => {
     try {
       if (!API_URL) {
@@ -586,21 +759,18 @@ const SwarManch = () => {
       const response = await axios.post(
         `${API_URL}/api/post/create`,
         formData,
-        {
-          withCredentials: true,
-        },
+        { withCredentials: true },
       );
 
       const newPost = response.data.post || response.data;
 
       if (newPost?._id && isAudioPost(newPost)) {
         setPosts((previous) => [
-          {
-            ...newPost,
-            isLiked: false,
-          },
+          { ...newPost, isLiked: false },
           ...previous.filter((post) => post._id !== newPost._id),
         ]);
+
+        setIsArchiveMode(false);
       } else {
         setRefreshKey((previous) => previous + 1);
       }
@@ -617,14 +787,16 @@ const SwarManch = () => {
     }
   };
 
-  // Open post detail modal.
+  // ==========================================
+  // POST DETAILS
+  // ==========================================
+
   const handlePostSelect = (post) => {
     if (!post || post.isDemo || !post._id) return;
 
     setSelectedPost(post);
   };
 
-  // Synchronize changes from the detail component.
   const handlePostUpdated = (updatedPost) => {
     if (!updatedPost?._id) return;
 
@@ -641,225 +813,341 @@ const SwarManch = () => {
     );
   };
 
+  // ==========================================
+  // PAGE
+  // ==========================================
+
   return (
-    <main className="min-h-screen bg-[#F8F7F4]">
-      <section className="mx-auto max-w-[1600px] px-5 py-8 sm:px-8 lg:px-12">
-        {/* Upload action */}
-        <div className="mb-7 flex justify-end">
-          <button
-            type="button"
-            onClick={handleUploadClick}
-            disabled={authLoading || profileLoading}
-            className="flex shrink-0 items-center gap-2 rounded-full bg-[#E5092D] px-5 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-[#C90024] disabled:cursor-wait disabled:opacity-60"
-          >
-            {authLoading || profileLoading ? (
-              <LoaderCircle size={17} className="animate-spin" />
-            ) : (
-              <Upload size={17} />
-            )}
-
-            <span>
-              {authLoading || profileLoading
-                ? "Checking..."
-                : "Upload performance"}
-            </span>
-          </button>
-        </div>
-
-        {/* Search and sorting */}
-        <div className="mb-7 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <div className="relative w-full sm:max-w-md">
-            <Search
-              size={18}
-              className="absolute left-4 top-1/2 -translate-y-1/2 text-[#99918B]"
-            />
-
-            <input
-              type="text"
-              value={search}
-              onChange={(event) => setSearch(event.target.value)}
-              placeholder="Search performances, creators or tags..."
-              className="w-full rounded-xl border border-[#EAE6E0] bg-white py-3.5 pl-11 pr-4 text-sm text-[#191919] outline-none transition placeholder:text-[#AAA39D] focus:border-[#E5092D]"
-            />
-          </div>
-
-          <div className="flex items-center gap-3">
-            <SlidersHorizontal size={17} className="shrink-0 text-[#99918B]" />
-
-            <label
-              htmlFor="swar-sort"
-              className="shrink-0 text-sm text-[#77716F]"
-            >
-              Sort by
-            </label>
-
-            <div className="relative">
-              <select
-                id="swar-sort"
-                value={sort}
-                onChange={(event) => setSort(event.target.value)}
-                className="appearance-none rounded-xl border border-[#EAE6E0] bg-white py-3 pl-4 pr-10 text-sm text-[#191919] outline-none transition focus:border-[#E5092D]"
-              >
-                {sortOptions.map((option) => (
-                  <option key={option.value} value={option.value}>
-                    {option.label}
-                  </option>
-                ))}
-              </select>
-
-              <ChevronDown
-                size={16}
-                className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-[#77716F]"
-              />
-            </div>
-          </div>
-        </div>
-
-        {/* Categories */}
-        <div className="mb-8">
-          <p className="mb-3 text-xs font-semibold uppercase tracking-[0.18em] text-[#99918B]">
-            Browse by category
-          </p>
-
-          <div className="flex gap-2 overflow-x-auto pb-2">
-            {categories.map((category) => {
-              const Icon = category.icon;
-              const active = activeCategory === category.value;
-
-              return (
-                <button
-                  key={category.value}
-                  type="button"
-                  onClick={() => setActiveCategory(category.value)}
-                  className={`flex shrink-0 items-center gap-2 rounded-full border px-5 py-2.5 text-sm transition ${
-                    active
-                      ? "border-[#E5092D] bg-[#E5092D] text-white"
-                      : "border-[#EAE6E0] bg-white text-[#77716F] hover:border-[#E5092D] hover:text-[#E5092D]"
-                  }`}
-                >
-                  <Icon size={15} />
-                  {category.label}
-                </button>
-              );
-            })}
-          </div>
-        </div>
-
-        {/* Results and refresh */}
-        <div className="mb-5 flex items-center justify-between">
-          <p className="text-sm text-[#77716F]">
-            {loading
-              ? "Finding performances..."
-              : `${filteredPosts.length} performances`}
-          </p>
-
-          <button
-            type="button"
-            onClick={() => setRefreshKey((previous) => previous + 1)}
-            disabled={loading}
-            className="flex items-center gap-2 text-sm text-[#77716F] transition hover:text-[#E5092D] disabled:opacity-50"
-          >
-            <RefreshCw size={15} className={loading ? "animate-spin" : ""} />
-            Refresh
-          </button>
-        </div>
-
-        {/* Feed */}
-        <SwarFeed
-          posts={filteredPosts}
-          loading={loading}
-          onPostSelect={handlePostSelect}
-          onLike={handleLike}
-          onComment={handlePostSelect}
+    <>
+      <main className="min-h-screen overflow-x-hidden bg-[#05051A] text-white">
+        {/* NAVBAR */}
+        <SwarNavbar
+          onUpload={handleUploadClick}
+          uploadingDisabled={authLoading || profileLoading}
         />
 
-        {/* Load more */}
-        {!loading && !error && hasMore && (
-          <div className="flex flex-col items-center gap-3 pt-10">
-            {loadMoreError && (
-              <p className="text-sm text-[#E5092D]">{loadMoreError}</p>
-            )}
+        {/* HERO IMAGE */}
+        <section className="relative w-full overflow-hidden bg-[#05051A]">
+          <img
+            src={swarHero}
+            alt="Swar Manch"
+            className="block h-auto max-h-[350px] min-h-[240px] w-full object-cover object-center"
+          />
+
+          <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(90deg,rgba(5,5,26,0.98)_0%,rgba(5,5,26,0.78)_30%,rgba(5,5,26,0.35)_60%,transparent_100%)]" />
+
+          <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-[#05051A] via-transparent to-transparent" />
+
+          <div className="absolute inset-0 flex items-center gap-4 px-5 sm:gap-7 sm:px-10 md:px-16 lg:px-20">
+            {/* NEON AUDIO ICON */}
+            <AudioLines
+              className="
+                h-14 w-14 shrink-0
+                text-[#A78BFA]
+                drop-shadow-[0_0_12px_rgba(139,92,246,0.9)]
+                sm:h-20 sm:w-20
+                md:h-28 md:w-28
+                lg:h-32 lg:w-32
+              "
+              strokeWidth={1.5}
+            />
+
+            {/* TITLE + TAGLINE */}
+            <div className="flex flex-col">
+              <p
+                className="
+                  mt-3 font-[Orbitron] font-medium
+                  text-[10px] tracking-[0.2em]
+                  text-[#C4B5FD]
+                  sm:mt-4 sm:text-sm md:text-base
+                "
+              >
+                The sound of expression
+              </p>
+
+              <h1
+                className="
+                  font-[Orbitron] font-bold uppercase
+                  leading-[0.95] tracking-[-0.04em]
+                  text-4xl text-white
+                  drop-shadow-[0_0_20px_rgba(139,92,246,0.2)]
+                  sm:text-5xl md:text-7xl lg:text-8xl
+                "
+              >
+                Swar
+                <br />
+                <span className="text-[#A78BFA] drop-shadow-[0_0_14px_rgba(139,92,246,0.65)]">
+                  Manch.
+                </span>
+              </h1>
+
+              <p
+                className="
+                  mt-3 font-[Orbitron] font-medium
+                  text-[10px] tracking-[0.2em]
+                  text-[#C4B5FD]
+                  sm:mt-4 sm:text-sm md:text-base
+                "
+              >
+                YOU ARE MELODIOUS.
+              </p>
+            </div>
+          </div>
+        </section>
+
+        {/* PERFORMANCES */}
+        <section
+          id="swar-performances"
+          className="mx-auto max-w-[1800px] scroll-mt-20 px-4 pb-10 pt-5 sm:px-6 lg:px-9"
+        >
+          {/* CATEGORY + UPLOAD */}
+          <div className="mb-5 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+            <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
+              {categories.map((category) => {
+                const Icon = category.icon;
+                const active = activeCategory === category.value;
+
+                return (
+                  <button
+                    key={category.value}
+                    type="button"
+                    onClick={() => setActiveCategory(category.value)}
+                    className={`flex shrink-0 items-center gap-1.5 rounded-full border px-5 py-2 text-[12px] font-medium transition-all duration-200 ${
+                      active
+                        ? "border-[#8B5CF6] bg-[#8B5CF6] text-white shadow-[0_0_18px_rgba(139,92,246,0.18)]"
+                        : "border-white/[0.09] bg-[#0B0B27]/90 text-white/75 hover:border-[#8B5CF6]/50 hover:text-[#A78BFA]"
+                    }`}
+                  >
+                    <Icon size={14} />
+
+                    {category.label === "All performances"
+                      ? "All"
+                      : category.label}
+                  </button>
+                );
+              })}
+            </div>
 
             <button
               type="button"
-              onClick={handleLoadMore}
-              disabled={loadingMore}
-              className="flex items-center gap-2 rounded-full border border-[#EAE6E0] bg-white px-7 py-3 text-sm font-medium text-[#514C48] transition hover:border-[#E5092D] hover:text-[#E5092D] disabled:opacity-50"
+              onClick={handleUploadClick}
+              disabled={authLoading || profileLoading}
+              className="inline-flex shrink-0 items-center justify-center gap-2 self-start rounded-full border border-[#8B5CF6] bg-transparent px-6 py-2.5 text-[12px] font-semibold text-white shadow-[0_0_16px_rgba(139,92,246,0.12)] transition hover:bg-[#8B5CF6] hover:text-white disabled:cursor-not-allowed disabled:opacity-50 lg:self-auto"
             >
-              {loadingMore && (
-                <LoaderCircle size={16} className="animate-spin" />
+              {authLoading || profileLoading ? (
+                <LoaderCircle size={15} className="animate-spin" />
+              ) : (
+                <Upload size={15} />
               )}
-
-              {loadingMore ? "Loading..." : "Load more performances"}
+              Upload Performance
             </button>
           </div>
-        )}
 
-        {/* Error */}
-        {!loading && error && filteredPosts.length === 0 && (
-          <p className="py-12 text-center text-sm text-[#77716F]">{error}</p>
-        )}
+          {/* SEARCH + SORT */}
+          <div className="mb-5 flex flex-col gap-4 border-b border-white/[0.07] pb-4 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row">
+              {/* SEARCH */}
+              <div className="relative w-full sm:w-[260px]">
+                <Search
+                  size={15}
+                  className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#A78BFA]"
+                />
 
-        {/* No search results */}
-        {!loading && !error && filteredPosts.length === 0 && (
-          <div className="py-16 text-center">
-            <p className="font-serif text-2xl text-[#191919]">
-              No performances found.
-            </p>
+                <input
+                  type="text"
+                  value={search}
+                  onChange={(event) => setSearch(event.target.value)}
+                  placeholder="Search performances..."
+                  className="h-10 w-full rounded-lg border border-white/[0.09] bg-[#0B0B27] pl-10 pr-9 text-xs text-white outline-none transition placeholder:text-[#77718F] focus:border-[#8B5CF6]/70"
+                />
 
-            <p className="mt-2 text-sm text-[#99918B]">
-              Try another search or category.
+                {search && (
+                  <button
+                    type="button"
+                    onClick={() => setSearch("")}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-[#77718F] hover:text-white"
+                    aria-label="Clear search"
+                  >
+                    <X size={14} />
+                  </button>
+                )}
+              </div>
+
+              {/* SORT */}
+              <div className="relative flex h-10 shrink-0 items-center rounded-lg border border-white/[0.09] bg-[#0B0B27] pl-3">
+                <SlidersHorizontal size={14} className="mr-2 text-[#A78BFA]" />
+
+                <select
+                  id="swar-sort"
+                  value={sort}
+                  onChange={(event) => setSort(event.target.value)}
+                  className="h-full appearance-none bg-transparent pr-9 text-xs text-white outline-none"
+                >
+                  {sortOptions.map((option) => (
+                    <option
+                      key={option.value}
+                      value={option.value}
+                      className="bg-[#0B0B27]"
+                    >
+                      {option.label}
+                    </option>
+                  ))}
+                </select>
+
+                <ChevronDown
+                  size={13}
+                  className="pointer-events-none absolute right-3 text-[#A78BFA]"
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* ARCHIVE NOTICE */}
+          {isArchiveMode && !loading && (
+            <div className="mb-4 rounded-lg border border-[#30234E] bg-[#100C27] px-4 py-2.5 text-[11px] text-[#A5A0BC]">
+              You're exploring public audio performances from Internet Archive.
+              Community performances will appear here when available.
+            </div>
+          )}
+
+          {/* RESULTS COUNT */}
+          <div className="mb-4 flex items-center justify-between">
+            <p className="text-[11px] text-[#85809F]">
+              {loading
+                ? "Discovering performances..."
+                : `${filteredPosts.length} performances`}
             </p>
 
             {(search || activeCategory !== "all") && (
               <button
                 type="button"
                 onClick={clearFilters}
-                className="mt-4 text-sm font-medium text-[#E5092D] hover:text-[#C90024]"
+                className="text-[11px] text-[#A78BFA] transition hover:text-white"
               >
                 Clear filters
               </button>
             )}
           </div>
-        )}
-      </section>
 
-      {/* Create Profile Modal */}
-      {showCreateProfile && (
-        <CreateProfile
-          onClose={() => setShowCreateProfile(false)}
-          onSuccess={handleProfileCreated}
-        />
-      )}
+          {/* ERROR */}
+          {error && !loading && (
+            <div className="mb-5 flex flex-col items-center gap-3 rounded-xl border border-[#30234E] bg-[#100C27] px-5 py-7 text-center">
+              <p className="text-sm text-[#A5A0BC]">{error}</p>
 
-      {/* Upload Modal */}
-      {showUpload && (
-        <div
-          className="fixed inset-0 z-[100] flex items-center justify-center overflow-y-auto bg-black/60 p-4"
-          onClick={() => setShowUpload(false)}
-        >
-          <div
-            className="my-auto w-full max-w-2xl"
-            onClick={(event) => event.stopPropagation()}
-          >
-            <SwarUpload
-              onUpload={handleAudioUpload}
-              onCancel={() => setShowUpload(false)}
+              <button
+                type="button"
+                onClick={() => setRefreshKey((previous) => previous + 1)}
+                className="flex items-center gap-2 text-xs font-medium text-[#A78BFA]"
+              >
+                <RefreshCw size={14} />
+                Try again
+              </button>
+            </div>
+          )}
+
+          {/* PERFORMANCE FEED */}
+          <div className="min-h-[300px]">
+            <SwarFeed
+              posts={filteredPosts}
+              loading={loading}
+              onPostSelect={handlePostSelect}
+              onLike={handleLike}
+              onComment={handlePostSelect}
             />
-          </div>
-        </div>
-      )}
 
-      {/* Post Detail Modal */}
-      {selectedPost && (
-        <SwarPostDetail
-          key={selectedPost._id}
-          post={selectedPost}
-          onClose={() => setSelectedPost(null)}
-          onPostUpdated={handlePostUpdated}
-        />
-      )}
-    </main>
+            {/* EMPTY STATE */}
+            {!loading && !error && filteredPosts.length === 0 && (
+              <div className="py-16 text-center">
+                <Music2 size={30} className="mx-auto mb-3 text-[#77718F]" />
+
+                <p className="text-xl font-medium text-white">
+                  No performances found.
+                </p>
+
+                <p className="mt-2 text-xs text-[#85809F]">
+                  Try another search or category.
+                </p>
+
+                <button
+                  type="button"
+                  onClick={
+                    search || activeCategory !== "all"
+                      ? clearFilters
+                      : handleUploadClick
+                  }
+                  className="mt-4 rounded-lg border border-[#8B5CF6]/40 px-4 py-2 text-xs font-semibold text-[#C4B5FD] transition hover:bg-[#8B5CF6] hover:text-white"
+                >
+                  {search || activeCategory !== "all"
+                    ? "Clear filters"
+                    : "Upload performance"}
+                </button>
+              </div>
+            )}
+          </div>
+
+          {/* LOAD MORE */}
+          {!loading && !isArchiveMode && !error && hasMore && (
+            <div className="flex flex-col items-center gap-3 pt-8">
+              {loadMoreError && (
+                <p className="text-xs text-red-400">{loadMoreError}</p>
+              )}
+
+              <button
+                type="button"
+                onClick={handleLoadMore}
+                disabled={loadingMore}
+                className="flex items-center gap-2 rounded-full border border-white/10 bg-[#0B0B27] px-6 py-2.5 text-xs font-medium text-[#C4B5FD] transition hover:border-[#8B5CF6] hover:text-[#A78BFA] disabled:opacity-50"
+              >
+                {loadingMore && (
+                  <LoaderCircle size={14} className="animate-spin" />
+                )}
+
+                {loadingMore ? "Loading..." : "Load more performances"}
+              </button>
+            </div>
+          )}
+        </section>
+
+        {/* CREATE PROFILE */}
+        {showCreateProfile && (
+          <CreateProfile
+            onClose={() => setShowCreateProfile(false)}
+            onSuccess={handleProfileCreated}
+          />
+        )}
+
+        {/* UPLOAD MODAL */}
+        {showUpload && (
+          <div
+            className="fixed inset-0 z-[100] overflow-y-auto bg-black/80"
+            onClick={() => setShowUpload(false)}
+          >
+            <div
+              className="min-h-screen"
+              onClick={(event) => event.stopPropagation()}
+            >
+              <SwarUpload
+                onUpload={handleAudioUpload}
+                onCancel={() => setShowUpload(false)}
+              />
+            </div>
+          </div>
+        )}
+
+        {/* POST DETAIL */}
+        {selectedPost && (
+          <SwarPostDetail
+            key={selectedPost._id}
+            post={selectedPost}
+            onClose={() => setSelectedPost(null)}
+            onPostUpdated={handlePostUpdated}
+          />
+        )}
+      </main>
+
+      {/* INTRO LOADER */}
+      {showIntroLoader && <SwarIntroLoader />}
+    </>
   );
 };
 

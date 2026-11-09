@@ -30,51 +30,45 @@ const ShabdaFeed = ({
 
   const skeletons = [1, 2, 3, 4, 5, 6];
 
-  // Initial loading skeleton
+  // ==========================================
+  // INITIAL LOADING SKELETON
+  // ==========================================
+
   if (loading && validPosts.length === 0) {
     return (
       <section className="w-full">
-        <div className="mb-7 flex items-center justify-between">
-          <div>
-            <div className="h-3 w-28 animate-pulse rounded bg-[#F0ECE7]" />
-            <div className="mt-3 h-7 w-44 animate-pulse rounded bg-[#F0ECE7]" />
-          </div>
-
-          <div className="h-8 w-8 animate-pulse rounded-full bg-[#F0ECE7]" />
-        </div>
-
-        <div className="grid grid-cols-1 items-start gap-5 sm:grid-cols-2 xl:grid-cols-3">
+        <div className="grid grid-cols-1 items-start gap-4 sm:grid-cols-2 xl:grid-cols-3">
           {skeletons.map((item) => (
             <div
               key={item}
-              className="overflow-hidden rounded-2xl border border-[#EAE6E0] bg-white"
+              className="group relative overflow-hidden rounded-xl border border-[#F97316]/15 bg-[#1D140D] shadow-[0_8px_30px_rgba(0,0,0,0.16)]"
             >
-              <div className="h-[3px] bg-[#F0ECE7]" />
+              <div className="h-[2px] bg-gradient-to-r from-transparent via-[#F97316]/60 to-transparent" />
 
-              <div className="p-6 sm:p-7">
+              <div className="p-5 sm:p-6">
                 <div className="mb-7 flex items-center justify-between">
-                  <div className="h-3 w-24 animate-pulse rounded bg-[#F0ECE7]" />
-                  <div className="h-4 w-4 animate-pulse rounded bg-[#F0ECE7]" />
+                  <div className="h-3 w-24 animate-pulse rounded bg-[#392719]" />
+                  <div className="h-4 w-4 animate-pulse rounded bg-[#392719]" />
                 </div>
 
-                <div className="mb-5 h-6 w-3/4 animate-pulse rounded bg-[#F0ECE7]" />
+                <div className="mb-5 h-6 w-3/4 animate-pulse rounded bg-[#392719]" />
 
                 <div className="space-y-3">
-                  <div className="h-3 w-full animate-pulse rounded bg-[#F0ECE7]" />
-                  <div className="h-3 w-full animate-pulse rounded bg-[#F0ECE7]" />
-                  <div className="h-3 w-4/5 animate-pulse rounded bg-[#F0ECE7]" />
-                  <div className="h-3 w-2/3 animate-pulse rounded bg-[#F0ECE7]" />
+                  <div className="h-3 w-full animate-pulse rounded bg-[#392719]" />
+                  <div className="h-3 w-full animate-pulse rounded bg-[#392719]" />
+                  <div className="h-3 w-4/5 animate-pulse rounded bg-[#392719]" />
+                  <div className="h-3 w-2/3 animate-pulse rounded bg-[#392719]" />
                 </div>
 
-                <div className="mt-8 h-3 w-28 animate-pulse rounded bg-[#FCEAED]" />
+                <div className="mt-8 h-3 w-28 animate-pulse rounded bg-[#6B3218]/40" />
 
-                <div className="mt-8 border-t border-[#F0ECE7] pt-4">
+                <div className="mt-7 border-t border-[#F97316]/10 pt-4">
                   <div className="flex items-center gap-3">
-                    <div className="h-9 w-9 animate-pulse rounded-full bg-[#F0ECE7]" />
+                    <div className="h-9 w-9 animate-pulse rounded-full bg-[#392719]" />
 
                     <div className="space-y-2">
-                      <div className="h-3 w-24 animate-pulse rounded bg-[#F0ECE7]" />
-                      <div className="h-2 w-16 animate-pulse rounded bg-[#F0ECE7]" />
+                      <div className="h-3 w-24 animate-pulse rounded bg-[#392719]" />
+                      <div className="h-2 w-16 animate-pulse rounded bg-[#392719]" />
                     </div>
                   </div>
                 </div>
@@ -86,79 +80,66 @@ const ShabdaFeed = ({
     );
   }
 
-  // Empty state
+  // ==========================================
+  // EMPTY STATE
+  // ==========================================
+
   if (validPosts.length === 0) {
     return (
-      <section className="flex min-h-[380px] w-full flex-col items-center justify-center px-5 py-16 text-center">
-        <div className="relative mb-6">
-          <div className="flex h-[76px] w-[76px] items-center justify-center rounded-full bg-[#FCEAED] text-[#E5092D]">
-            <BookOpen size={30} strokeWidth={1.4} />
+      <section className="relative flex min-h-[360px] w-full flex-col items-center justify-center overflow-hidden rounded-2xl border border-[#F97316]/10 bg-[#1D140D]/70 px-5 py-16 text-center">
+        {/* BACKGROUND GLOW */}
+        <div className="pointer-events-none absolute left-1/2 top-1/2 h-64 w-64 -translate-x-1/2 -translate-y-1/2 rounded-full bg-[#F97316]/[0.07] blur-[90px]" />
+
+        <div className="relative z-10">
+          <div className="relative mx-auto mb-6 w-fit">
+            <div className="flex h-[76px] w-[76px] items-center justify-center rounded-full border border-[#F97316]/30 bg-[#2A1B11] text-[#FB923C] shadow-[0_0_35px_rgba(249,115,22,0.12)]">
+              <BookOpen size={30} strokeWidth={1.4} />
+            </div>
+
+            <span className="absolute -right-1 -top-1 flex h-7 w-7 items-center justify-center rounded-full border-4 border-[#1D140D] bg-[#F97316] text-white shadow-[0_0_15px_rgba(249,115,22,0.4)]">
+              <Sparkles size={13} />
+            </span>
           </div>
 
-          <span className="absolute -right-1 -top-1 flex h-7 w-7 items-center justify-center rounded-full border-4 border-[#F8F7F4] bg-white text-[#E5092D]">
-            <Sparkles size={13} />
+          <span className="mb-3 flex items-center justify-center gap-2 text-[10px] font-semibold uppercase tracking-[0.25em] text-[#FB923C]">
+            <Feather size={13} />
+            Shabda Manch
           </span>
-        </div>
 
-        <span className="mb-3 flex items-center gap-2 text-[10px] font-semibold uppercase tracking-[0.25em] text-[#E5092D]">
-          <Feather size={13} />
-          ShabdaManch
-        </span>
+          <h2 className="font-[Orbitron] text-xl font-semibold tracking-tight text-[#FFF3E8] sm:text-2xl">
+            A page waiting to be written.
+          </h2>
 
-        <h2 className="text-2xl font-semibold tracking-tight text-[#292424] sm:text-3xl">
-          A page waiting to be written.
-        </h2>
+          <p className="mx-auto mt-3 max-w-sm text-sm leading-7 text-[#B9A18D]">
+            Poetry, stories, thoughts, and little pieces of imagination belong
+            here. Be the first to share yours.
+          </p>
 
-        <p className="mt-3 max-w-sm text-sm leading-7 text-[#89817C]">
-          Poetry, stories, thoughts, and little pieces of imagination belong
-          here. Be the first to share yours.
-        </p>
-
-        <div className="mt-7 flex items-center gap-2 text-xs font-semibold text-[#E5092D]">
-          <PenLine size={15} />
-          <span>Every word has a place.</span>
+          <div className="mt-7 inline-flex items-center gap-2 text-xs font-semibold text-[#FB923C]">
+            <PenLine size={15} />
+            <span>Every word has a place.</span>
+          </div>
         </div>
       </section>
     );
   }
 
+  // ==========================================
+  // FEED
+  // ==========================================
+
   return (
     <section className="w-full">
-      {/* Feed heading */}
-      <div className="mb-7 flex items-end justify-between gap-4">
-        <div>
-          <div className="mb-2 flex items-center gap-2 text-[#E5092D]">
-            <Feather size={14} strokeWidth={1.7} />
-
-            <span className="text-[10px] font-semibold uppercase tracking-[0.22em]">
-              The written collection
-            </span>
-          </div>
-
-          <h2 className="text-xl font-semibold tracking-tight text-[#292424] sm:text-2xl">
-            Words worth sharing
-          </h2>
-
-          <p className="mt-1 text-xs text-[#99918B]">
-            Stories, poetry, and thoughts from the community.
-          </p>
-        </div>
-
-        <span className="shrink-0 rounded-full border border-[#F0DDE0] bg-white px-3 py-1.5 text-[11px] font-medium text-[#B83249]">
-          {validPosts.length} {validPosts.length === 1 ? "piece" : "pieces"}
-        </span>
-      </div>
-
-      {/* Refresh indicator */}
+      {/* REFRESH INDICATOR */}
       {loading && (
-        <div className="mb-5 flex items-center justify-center gap-2 text-xs text-[#99918B]">
-          <LoaderCircle size={14} className="animate-spin text-[#E5092D]" />
+        <div className="mb-5 flex items-center justify-center gap-2 text-xs text-[#B9A18D]">
+          <LoaderCircle size={14} className="animate-spin text-[#FB923C]" />
           Refreshing collection...
         </div>
       )}
 
-      {/* Posts grid */}
-      <div className="grid grid-cols-1 items-start gap-5 sm:grid-cols-2 xl:grid-cols-3">
+      {/* POSTS GRID */}
+      <div className="grid grid-cols-1 items-start gap-4 sm:grid-cols-2 xl:grid-cols-3">
         {validPosts.map((post) => (
           <ShabdaPost
             key={post._id}

@@ -1,28 +1,30 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import axios from "axios";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useNavigationType } from "react-router-dom";
 import {
   BookOpen,
-  Feather,
   Search,
   SlidersHorizontal,
-  PenLine,
-  RefreshCw,
-  LoaderCircle,
-  Sparkles,
-  X,
   ChevronDown,
+  LoaderCircle,
+  RefreshCw,
+  PenLine,
+  X,
   AlertCircle,
 } from "lucide-react";
+
+import shabdaHero from "../assets/shabdahero.png";
+import shabdalogo from "../assets/shabdalogo.png";
 
 import { useAuth } from "../context/AuthContext";
 
 import ShabdaFeed from "../components/shabda/ShabdaFeed";
 import ShabdaUpload from "../components/shabda/ShabdaUpload";
 import ShabdaPostDetails from "../components/shabda/ShabdaPostDetail";
+import ShabdaNavbar from "../components/shabda/ShabdaNavbar";
+import CreateProfile from "../components/CreateProfile";
 
 const API_URL = (import.meta.env.VITE_API_URL || "").replace(/\/+$/, "");
-
 const PAGE_LIMIT = 30;
 
 const SORT_OPTIONS = [
@@ -31,27 +33,167 @@ const SORT_OPTIONS = [
   { value: "most-discussed", label: "Most discussed" },
 ];
 
+// ==========================================
+// SHABDA INTRO LOADER
+// ==========================================
+
+const ShabdaIntroLoader = () => (
+  <div className="shabda-loader fixed inset-0 z-[200] flex min-h-screen items-center justify-center overflow-hidden bg-[#140D08]">
+    <div className="pointer-events-none absolute inset-0">
+      <div className="absolute left-1/2 top-1/2 h-[420px] w-[420px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[#F97316]/[0.16] blur-[120px]" />
+      <div className="absolute left-[15%] top-[20%] h-48 w-48 rounded-full bg-[#FB923C]/10 blur-[100px]" />
+      <div className="absolute bottom-[10%] right-[12%] h-56 w-56 rounded-full bg-[#EA580C]/10 blur-[110px]" />
+
+      <div className="absolute inset-0 opacity-[0.045] [background-image:linear-gradient(rgba(249,115,22,0.3)_1px,transparent_1px),linear-gradient(90deg,rgba(249,115,22,0.3)_1px,transparent_1px)] [background-size:70px_70px]" />
+    </div>
+
+    <div className="relative z-10 flex flex-col items-center px-6 text-center">
+      <div className="relative mb-8 flex h-36 w-36 items-center justify-center">
+        <div className="shabda-outer-ring absolute inset-0 rounded-full border border-dashed border-[#F97316]/60" />
+        <div className="shabda-middle-ring absolute inset-3 rounded-full border border-[#FB923C]/40" />
+
+        <div className="absolute inset-7 rounded-full border border-[#F97316]/30 bg-[#24170F] shadow-[0_0_55px_rgba(249,115,22,0.22)]" />
+
+        <img
+          src={shabdalogo}
+          alt="Shabda Manch"
+          className="shabda-aperture relative z-10 h-16 w-16 object-contain drop-shadow-[0_0_18px_rgba(249,115,22,0.45)]"
+        />
+      </div>
+
+      <div className="space-y-3">
+        <div className="flex items-center justify-center gap-2 text-[#FB923C]">
+          <BookOpen size={16} />
+          <span className="text-[10px] font-semibold uppercase tracking-[0.4em]">
+            PRATIVA
+          </span>
+        </div>
+
+        <h1 className="font-[Orbitron] text-3xl font-semibold tracking-[0.1em] text-[#FFF3E8] sm:text-4xl">
+          SHABDA <span className="text-[#F97316]">MANCH</span>
+        </h1>
+
+        <p className="text-sm text-[#B9A18D]">Every word carries a world.</p>
+      </div>
+
+      <div className="mt-10 w-44">
+        <div className="mb-3 flex items-center justify-between">
+          <span className="text-[9px] uppercase tracking-[0.2em] text-[#A9917C]">
+            Turning thoughts into words
+          </span>
+          <BookOpen size={14} className="text-[#FB923C]" />
+        </div>
+
+        <div className="h-[3px] overflow-hidden rounded-full bg-[#F97316]/15">
+          <div className="shabda-progress h-full rounded-full bg-[#F97316] shadow-[0_0_12px_rgba(249,115,22,0.8)]" />
+        </div>
+      </div>
+    </div>
+
+    <style>{`
+      .shabda-loader {
+        animation: shabdaFadeIn 0.4s ease-out both;
+      }
+
+      .shabda-outer-ring {
+        animation: shabdaRotate 12s linear infinite;
+      }
+
+      .shabda-middle-ring {
+        animation: shabdaRotateReverse 8s linear infinite;
+      }
+
+      .shabda-aperture {
+        animation: shabdaPulse 2s ease-in-out infinite;
+      }
+
+      .shabda-progress {
+        width: 35%;
+        animation: shabdaProgress 1.7s ease-in-out infinite;
+      }
+
+      @keyframes shabdaRotate {
+        to { transform: rotate(360deg); }
+      }
+
+      @keyframes shabdaRotateReverse {
+        from { transform: rotate(360deg); }
+        to { transform: rotate(0deg); }
+      }
+
+      @keyframes shabdaPulse {
+        0%, 100% {
+          transform: scale(0.94);
+          opacity: 0.75;
+        }
+        50% {
+          transform: scale(1.06);
+          opacity: 1;
+        }
+      }
+
+      @keyframes shabdaProgress {
+        0% { transform: translateX(-120%); }
+        100% { transform: translateX(390%); }
+      }
+
+      @keyframes shabdaFadeIn {
+        from { opacity: 0; }
+        to { opacity: 1; }
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        .shabda-outer-ring,
+        .shabda-middle-ring,
+        .shabda-aperture,
+        .shabda-progress {
+          animation: none;
+        }
+      }
+    `}</style>
+  </div>
+);
+
+// ==========================================
+// SHABDA MANCH PAGE
+// ==========================================
+
 const ShabdaManch = () => {
   const navigate = useNavigate();
+  const navigationType = useNavigationType();
 
-  const { isAuthenticated, user } = useAuth();
+  const {
+    isAuthenticated,
+    hasProfile,
+    loading: authLoading,
+    profileLoading,
+    user,
+    refreshProfile,
+  } = useAuth();
 
   const [posts, setPosts] = useState([]);
   const [selectedPost, setSelectedPost] = useState(null);
 
   const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
+
+  const [showIntroLoader, setShowIntroLoader] = useState(
+    navigationType === "PUSH",
+  );
+
+  const [introMinimumElapsed, setIntroMinimumElapsed] = useState(false);
+
   const [error, setError] = useState("");
-
-  const [showUpload, setShowUpload] = useState(false);
-
   const [searchQuery, setSearchQuery] = useState("");
   const [sort, setSort] = useState("latest");
-  const [showSort, setShowSort] = useState(false);
 
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(false);
   const [totalPosts, setTotalPosts] = useState(0);
+
+  const [refreshKey, setRefreshKey] = useState(0);
+  const [showUpload, setShowUpload] = useState(false);
+  const [showCreateProfile, setShowCreateProfile] = useState(false);
 
   const currentUserId =
     user?._id ||
@@ -61,7 +203,63 @@ const ShabdaManch = () => {
     user?.user?.id ||
     null;
 
-  // Fetch written posts.
+  // ==========================================
+  // INTRO LOADER TIMING
+  // ==========================================
+
+  useEffect(() => {
+    if (!showIntroLoader) return;
+
+    const timer = window.setTimeout(() => {
+      setIntroMinimumElapsed(true);
+    }, 1700);
+
+    return () => window.clearTimeout(timer);
+  }, [showIntroLoader]);
+
+  useEffect(() => {
+    if (showIntroLoader && !loading && introMinimumElapsed) {
+      setShowIntroLoader(false);
+    }
+  }, [showIntroLoader, loading, introMinimumElapsed]);
+
+  // ==========================================
+  // UPLOAD AUTHENTICATION
+  // ==========================================
+
+  const handleUploadClick = () => {
+    if (authLoading || profileLoading) return;
+
+    if (!isAuthenticated) {
+      navigate("/login");
+      return;
+    }
+
+    if (!hasProfile) {
+      setShowCreateProfile(true);
+      return;
+    }
+
+    setShowUpload(true);
+  };
+
+  const handleProfileCreated = async () => {
+    try {
+      await refreshProfile();
+      setShowCreateProfile(false);
+      setShowUpload(true);
+    } catch (err) {
+      console.error(
+        "Profile refresh failed:",
+        err?.response?.data?.message || err.message,
+      );
+    }
+  };
+
+  // ==========================================
+  // FETCH WRITTEN POSTS
+  // ==========================================
+
   const fetchPosts = useCallback(
     async ({ pageNumber = 1, append = false } = {}) => {
       if (append) {
@@ -102,7 +300,15 @@ const ShabdaManch = () => {
         }));
 
         setPosts((previous) =>
-          append ? [...previous, ...formattedPosts] : formattedPosts,
+          append
+            ? [
+                ...previous,
+                ...formattedPosts.filter(
+                  (post) =>
+                    !previous.some((existing) => existing._id === post._id),
+                ),
+              ]
+            : formattedPosts,
         );
 
         setPage(pageNumber);
@@ -119,6 +325,7 @@ const ShabdaManch = () => {
 
         if (!append) {
           setPosts([]);
+          setHasMore(false);
         }
       } finally {
         setLoading(false);
@@ -128,12 +335,14 @@ const ShabdaManch = () => {
     [sort],
   );
 
-  // Initial feed and sorting changes.
   useEffect(() => {
     fetchPosts({ pageNumber: 1 });
-  }, [fetchPosts]);
+  }, [fetchPosts, refreshKey]);
 
-  // Load more posts.
+  // ==========================================
+  // LOAD MORE
+  // ==========================================
+
   const handleLoadMore = () => {
     if (loadingMore || loading || !hasMore) return;
 
@@ -143,24 +352,17 @@ const ShabdaManch = () => {
     });
   };
 
-  // Open upload editor.
-  const handleOpenUpload = () => {
-    if (!isAuthenticated) {
-      navigate("/login");
-      return;
-    }
+  // ==========================================
+  // CREATE POST
+  // ==========================================
 
-    setShowUpload(true);
-  };
-
-  // Add newly published post to the feed.
   const handlePostCreated = (newPost) => {
     if (!newPost?._id) return;
 
     const formattedPost = {
       ...newPost,
-      likesCount: 0,
-      commentsCount: 0,
+      likesCount: Number(newPost.likesCount) || 0,
+      commentsCount: Number(newPost.commentsCount) || 0,
       isLiked: false,
       isSaved: false,
     };
@@ -174,7 +376,10 @@ const ShabdaManch = () => {
     setShowUpload(false);
   };
 
-  // Update a post without replacing the entire feed.
+  // ==========================================
+  // UPDATE POST
+  // ==========================================
+
   const handlePostUpdated = (updatedPost) => {
     if (!updatedPost?._id) return;
 
@@ -191,7 +396,10 @@ const ShabdaManch = () => {
     );
   };
 
-  // Select a post for the detail modal.
+  // ==========================================
+  // POST DETAILS
+  // ==========================================
+
   const handlePostSelect = (post) => {
     if (!post?._id) return;
     setSelectedPost(post);
@@ -201,7 +409,10 @@ const ShabdaManch = () => {
     setSelectedPost(null);
   };
 
-  // Search locally through loaded posts.
+  // ==========================================
+  // SEARCH
+  // ==========================================
+
   const filteredPosts = useMemo(() => {
     const query = searchQuery.trim().toLowerCase();
 
@@ -212,6 +423,7 @@ const ShabdaManch = () => {
         post.title,
         post.description,
         post.content,
+        post.caption,
         ...(Array.isArray(post.tags) ? post.tags : []),
         post.author?.name,
         post.authorProfile?.username,
@@ -224,347 +436,337 @@ const ShabdaManch = () => {
     });
   }, [posts, searchQuery]);
 
-  const activeSortLabel =
-    SORT_OPTIONS.find((option) => option.value === sort)?.label || "Latest";
+  const clearFilters = () => {
+    setSearchQuery("");
+  };
+
+  // ==========================================
+  // PAGE
+  // ==========================================
 
   return (
-    <main className="min-h-screen bg-[#F8F7F4] pb-20 text-[#191919]">
-      {/* Hero */}
-      <section className="relative overflow-hidden border-b border-[#EAE6E0]">
-        <div className="pointer-events-none absolute -right-24 -top-32 h-96 w-96 rounded-full bg-[#E5092D]/[0.045] blur-3xl" />
+    <>
+      <main className="min-h-screen overflow-x-hidden bg-[#17100B] text-[#FFF3E8]">
+        {/* NAVBAR */}
+        <ShabdaNavbar
+          onUpload={handleUploadClick}
+          uploadingDisabled={authLoading || profileLoading}
+        />
 
-        <div className="pointer-events-none absolute -bottom-36 left-[-80px] h-80 w-80 rounded-full bg-[#E9E5DF]/70 blur-3xl" />
+        {/* HERO */}
+        <section className="relative w-full overflow-hidden bg-[#1C100A]">
+          <img
+            src={shabdaHero}
+            alt="Shabda Manch"
+            className="block h-auto max-h-[350px] min-h-[240px] w-full object-cover object-center"
+          />
 
-        <div className="relative mx-auto max-w-7xl px-5 pb-12 pt-14 sm:px-8 sm:pb-16 sm:pt-20 lg:px-12">
-          <div className="grid items-center gap-10 lg:grid-cols-[1fr_300px]">
-            <div>
-              <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-[#EAE6E0] bg-white/80 px-4 py-2 text-[10px] font-semibold uppercase tracking-[0.2em] text-[#E5092D]">
-                <Feather size={13} />
-                The written world of Prativa
-              </div>
+          {/* HEAVY LEFT VIGNETTE */}
+          <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(90deg,rgba(12,7,4,1)_0%,rgba(18,10,6,0.99)_18%,rgba(23,16,11,0.92)_38%,rgba(23,16,11,0.68)_58%,rgba(23,16,11,0.25)_78%,transparent_100%)]" />
 
-              <h1 className="max-w-3xl text-5xl font-semibold leading-[1.08] tracking-[-0.045em] text-[#191919] sm:text-6xl lg:text-7xl">
-                Some things
+          {/* DARK BOTTOM VIGNETTE */}
+          <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(0deg,rgba(12,7,4,0.85)_0%,rgba(23,16,11,0.35)_35%,transparent_70%)]" />
+
+          {/* DARK TOP VIGNETTE */}
+          <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(180deg,rgba(12,7,4,0.35)_0%,transparent_35%)]" />
+
+          {/* SUBTLE ORANGE GLOW */}
+          <div className="pointer-events-none absolute -left-20 top-1/2 h-64 w-64 -translate-y-1/2 rounded-full bg-[#F97316]/15 blur-[100px]" />
+          <div className="pointer-events-none absolute right-[15%] top-0 h-48 w-48 rounded-full bg-[#FB923C]/10 blur-[90px]" />
+
+          <div className="absolute inset-0 flex items-center gap-4 px-5 sm:gap-7 sm:px-10 md:px-16 lg:px-20">
+            <div className="flex shrink-0 items-center justify-center">
+              <img
+                src={shabdalogo}
+                alt="Shabda Manch Logo"
+                className="h-20 w-20 object-contain drop-shadow-[0_0_20px_rgba(249,115,22,0.4)] sm:h-28 sm:w-28 md:h-36 md:w-36 lg:h-40 lg:w-40"
+              />
+            </div>
+
+            <div className="flex min-w-0 flex-col">
+              <p className="mt-2 font-[Orbitron] text-[9px] font-semibold tracking-[0.2em] text-[#FDBA74] sm:mt-3 sm:text-xs md:text-sm">
+                THERE IS A POET IN YOU
+              </p>
+
+              <h1 className="font-[Orbitron] text-4xl font-bold uppercase leading-[0.95] tracking-[-0.04em] text-[#FFF7ED] sm:text-5xl md:text-7xl lg:text-8xl">
+                Shabda
                 <br />
-                are meant to be
-                <br />
-                <span className="font-serif font-normal italic text-[#E5092D]">
-                  written.
+                <span className="text-[#FB923C] drop-shadow-[0_0_20px_rgba(249,115,22,0.3)]">
+                  Manch.
                 </span>
               </h1>
 
-              <p className="mt-6 max-w-xl text-sm leading-7 text-[#77716F] sm:text-base sm:leading-8">
-                A home for poetry, stories, reflections, and the thoughts that
-                deserve more than a passing moment. Read something beautiful.
-                Leave something of your own.
-              </p>
-
-              <div className="mt-8 flex flex-wrap items-center gap-3">
-                <button
-                  type="button"
-                  onClick={handleOpenUpload}
-                  className="inline-flex items-center gap-2 rounded-xl bg-[#E5092D] px-6 py-3.5 text-xs font-semibold text-white shadow-sm transition hover:-translate-y-0.5 hover:bg-[#C90024] hover:shadow-md"
-                >
-                  <PenLine size={15} />
-                  Write something
-                </button>
-
-                <a
-                  href="#shabda-feed"
-                  className="inline-flex items-center gap-2 rounded-xl border border-[#EAE6E0] bg-white px-6 py-3.5 text-xs font-semibold text-[#514C48] transition hover:border-[#E5092D] hover:text-[#E5092D]"
-                >
-                  <BookOpen size={15} />
-                  Explore writings
-                </a>
-              </div>
-            </div>
-
-            {/* Editorial writing panel */}
-            <div className="relative mx-auto hidden w-full max-w-[280px] lg:block">
-              <div className="absolute -inset-4 rotate-[-5deg] rounded-[2rem] bg-[#F0DDE0]" />
-
-              <div className="relative rotate-[2deg] rounded-[1.5rem] border border-[#EAE6E0] bg-[#FFFEFC] p-7 shadow-xl">
-                <div className="mb-12 flex items-center justify-between">
-                  <Feather size={22} className="text-[#E5092D]" />
-
-                  <span className="text-[9px] font-semibold uppercase tracking-[0.2em] text-[#AAA39D]">
-                    A page of thoughts
-                  </span>
-                </div>
-
-                <div className="font-serif text-3xl leading-[1.35] text-[#292522]">
-                  "Words are
-                  <br />
-                  little windows
-                  <br />
-                  into the soul."
-                </div>
-
-                <div className="my-7 h-px w-full bg-[#EAE6E0]" />
-
-                <div className="flex items-center justify-between">
-                  <span className="text-[9px] uppercase tracking-[0.2em] text-[#99918B]">
-                    ShabdaManch
-                  </span>
-
-                  <Sparkles size={15} className="text-[#E5092D]" />
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Feed section */}
-      <section
-        id="shabda-feed"
-        className="mx-auto max-w-7xl px-5 pt-12 sm:px-8 sm:pt-16 lg:px-12"
-      >
-        <div className="mb-8 flex flex-col gap-6">
-          <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
-            <div>
-              <div className="mb-2 flex items-center gap-2 text-[10px] font-semibold uppercase tracking-[0.2em] text-[#99918B]">
-                <BookOpen size={13} />
-                Discover and read
-              </div>
-
-              <h2 className="font-serif text-3xl text-[#191919] sm:text-4xl">
-                The written collection
-              </h2>
-
-              <p className="mt-2 text-xs text-[#77716F]">
-                {totalPosts > 0
-                  ? `${totalPosts.toLocaleString()} published writings`
-                  : "Discover thoughts, stories, and poetry from the community."}
+              <p className="mt-3 font-[Orbitron] text-[9px] font-semibold tracking-[0.15em] text-[#E7B38C] sm:mt-4 sm:text-xs md:text-sm">
+                EVERY WORD CARRIES A WORLD.
               </p>
             </div>
-
-            <button
-              type="button"
-              onClick={() => fetchPosts({ pageNumber: 1 })}
-              disabled={loading}
-              aria-label="Refresh feed"
-              className="inline-flex h-10 w-10 items-center justify-center self-start rounded-xl border border-[#EAE6E0] bg-white text-[#77716F] transition hover:border-[#E5092D] hover:text-[#E5092D] disabled:opacity-50 sm:self-auto"
-            >
-              <RefreshCw size={15} className={loading ? "animate-spin" : ""} />
-            </button>
           </div>
+        </section>
 
-          {/* Search and sort */}
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-            <div className="relative flex-1">
-              <Search
-                size={17}
-                className="absolute left-4 top-1/2 -translate-y-1/2 text-[#99918B]"
-              />
-
-              <input
-                type="search"
-                value={searchQuery}
-                onChange={(event) => setSearchQuery(event.target.value)}
-                placeholder="Search writings, authors, or tags..."
-                className="h-12 w-full rounded-xl border border-[#EAE6E0] bg-white pl-11 pr-11 text-xs text-[#191919] outline-none transition placeholder:text-[#AAA39D] focus:border-[#E5092D]"
-              />
-
-              {searchQuery && (
-                <button
-                  type="button"
-                  onClick={() => setSearchQuery("")}
-                  aria-label="Clear search"
-                  className="absolute right-4 top-1/2 -translate-y-1/2 text-[#99918B] transition hover:text-[#E5092D]"
-                >
-                  <X size={15} />
-                </button>
-              )}
-            </div>
-
-            <div className="relative">
+        {/* WRITTEN COLLECTION */}
+        <section
+          id="shabda-feed"
+          className="mx-auto max-w-[1800px] scroll-mt-20 px-4 pb-10 pt-5 sm:px-6 lg:px-9"
+        >
+          {/* CATEGORY + WRITE */}
+          <div className="mb-5 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+            <div className="flex gap-2 overflow-x-auto pb-1">
               <button
                 type="button"
-                onClick={() => setShowSort((previous) => !previous)}
-                className="flex h-12 w-full items-center justify-between gap-5 rounded-xl border border-[#EAE6E0] bg-white px-4 text-xs font-medium text-[#514C48] transition hover:border-[#E5092D] sm:w-48"
+                className="shrink-0 rounded-full border border-[#F97316]/70 bg-[#F97316] px-5 py-2 text-[12px] font-semibold text-white shadow-[0_0_18px_rgba(249,115,22,0.2)]"
               >
                 <span className="flex items-center gap-2">
-                  <SlidersHorizontal size={15} />
-                  {activeSortLabel}
+                  <BookOpen size={14} />
+                  All writings
                 </span>
-
-                <ChevronDown
-                  size={15}
-                  className={`transition-transform ${
-                    showSort ? "rotate-180" : ""
-                  }`}
-                />
               </button>
-
-              {showSort && (
-                <>
-                  <button
-                    type="button"
-                    aria-label="Close sort menu"
-                    className="fixed inset-0 z-10 cursor-default"
-                    onClick={() => setShowSort(false)}
-                  />
-
-                  <div className="absolute right-0 top-14 z-20 w-full overflow-hidden rounded-xl border border-[#EAE6E0] bg-white p-1 shadow-xl sm:w-48">
-                    {SORT_OPTIONS.map((option) => (
-                      <button
-                        key={option.value}
-                        type="button"
-                        onClick={() => {
-                          setSort(option.value);
-                          setShowSort(false);
-                        }}
-                        className={`w-full rounded-lg px-4 py-3 text-left text-xs transition ${
-                          sort === option.value
-                            ? "bg-[#FCEAED] font-semibold text-[#E5092D]"
-                            : "text-[#514C48] hover:bg-[#F8F7F4] hover:text-[#E5092D]"
-                        }`}
-                      >
-                        {option.label}
-                      </button>
-                    ))}
-                  </div>
-                </>
-              )}
-            </div>
-          </div>
-        </div>
-
-        {/* Error */}
-        {error && !loading && (
-          <div className="mb-7 flex flex-col gap-3 rounded-xl border border-red-200 bg-red-50 p-5 sm:flex-row sm:items-center sm:justify-between">
-            <div className="flex items-start gap-3">
-              <AlertCircle size={18} className="mt-0.5 shrink-0 text-red-600" />
-
-              <div>
-                <p className="text-xs font-semibold text-red-700">
-                  Couldn't load ShabdaManch
-                </p>
-
-                <p className="mt-1 text-xs leading-5 text-red-600">{error}</p>
-              </div>
             </div>
 
             <button
               type="button"
-              onClick={() => fetchPosts({ pageNumber: 1 })}
-              className="shrink-0 rounded-lg bg-red-100 px-4 py-2 text-xs font-semibold text-red-700 transition hover:bg-red-200"
-            >
-              Try again
-            </button>
-          </div>
-        )}
-
-        {/* Feed */}
-        <ShabdaFeed
-          posts={filteredPosts}
-          loading={loading}
-          onPostSelect={handlePostSelect}
-          onLike={handlePostSelect}
-          onComment={handlePostSelect}
-          onSave={handlePostSelect}
-        />
-
-        {/* No search results */}
-        {!loading && posts.length > 0 && filteredPosts.length === 0 && (
-          <div className="py-16 text-center">
-            <Search size={28} className="mx-auto mb-4 text-[#99918B]" />
-
-            <h3 className="font-serif text-xl text-[#191919]">
-              No writings found
-            </h3>
-
-            <p className="mt-2 text-xs text-[#77716F]">
-              Try a different search term.
-            </p>
-
-            <button
-              type="button"
-              onClick={() => setSearchQuery("")}
-              className="mt-4 text-xs font-semibold text-[#E5092D] transition hover:text-[#C90024]"
-            >
-              Clear search
-            </button>
-          </div>
-        )}
-
-        {/* Empty feed */}
-        {!loading && !error && posts.length === 0 && (
-          <div className="py-16 text-center">
-            <BookOpen size={30} className="mx-auto mb-4 text-[#AAA39D]" />
-
-            <h3 className="font-serif text-2xl text-[#191919]">
-              The first page is waiting.
-            </h3>
-
-            <p className="mt-2 text-sm text-[#77716F]">
-              Be the first to share a poem, story, or thought.
-            </p>
-
-            <button
-              type="button"
-              onClick={handleOpenUpload}
-              className="mt-5 inline-flex items-center gap-2 rounded-xl bg-[#E5092D] px-5 py-3 text-xs font-semibold text-white transition hover:bg-[#C90024]"
+              onClick={handleUploadClick}
+              disabled={authLoading || profileLoading}
+              className="inline-flex shrink-0 items-center justify-center gap-2 self-start rounded-full border border-[#F97316]/60 bg-[#2A1B11] px-6 py-2.5 text-[12px] font-semibold text-[#FDBA74] shadow-[0_0_14px_rgba(249,115,22,0.06)] transition hover:border-[#FB923C] hover:bg-[#F97316] hover:text-white hover:shadow-[0_0_22px_rgba(249,115,22,0.3)] disabled:cursor-not-allowed disabled:opacity-50 lg:self-auto"
             >
               <PenLine size={15} />
-              Write the first post
+              Write something
             </button>
           </div>
-        )}
 
-        {/* Load more */}
-        {!loading && hasMore && filteredPosts.length > 0 && (
-          <div className="mt-12 flex justify-center">
-            <button
-              type="button"
-              onClick={handleLoadMore}
-              disabled={loadingMore}
-              className="inline-flex items-center gap-2 rounded-xl border border-[#EAE6E0] bg-white px-7 py-3.5 text-xs font-semibold text-[#514C48] transition hover:border-[#E5092D] hover:text-[#E5092D] disabled:cursor-not-allowed disabled:opacity-50"
-            >
-              {loadingMore ? (
-                <>
-                  <LoaderCircle size={15} className="animate-spin" />
-                  Loading...
-                </>
-              ) : (
-                "Load more writings"
+          {/* SEARCH + SORT */}
+          <div className="mb-5 flex flex-col gap-4 border-b border-[#F97316]/15 pb-4 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row">
+              {/* SEARCH */}
+              <div className="relative w-full sm:w-[260px]">
+                <Search
+                  size={15}
+                  className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#FB923C]"
+                />
+
+                <input
+                  type="text"
+                  value={searchQuery}
+                  onChange={(event) => setSearchQuery(event.target.value)}
+                  placeholder="Search writings..."
+                  className="h-10 w-full rounded-lg border border-[#F97316]/20 bg-[#24180F] pl-10 pr-9 text-xs text-[#FFF3E8] outline-none transition placeholder:text-[#A9917C] focus:border-[#FB923C]/70 focus:ring-2 focus:ring-[#F97316]/10"
+                />
+
+                {searchQuery && (
+                  <button
+                    type="button"
+                    onClick={() => setSearchQuery("")}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-[#A9917C] transition hover:text-[#FB923C]"
+                    aria-label="Clear search"
+                  >
+                    <X size={14} />
+                  </button>
+                )}
+              </div>
+
+              {/* SORT */}
+              <div className="relative flex h-10 shrink-0 items-center rounded-lg border border-[#F97316]/20 bg-[#24180F] pl-3">
+                <SlidersHorizontal size={14} className="mr-2 text-[#FB923C]" />
+
+                <select
+                  id="shabda-sort"
+                  value={sort}
+                  onChange={(event) => setSort(event.target.value)}
+                  className="h-full appearance-none bg-transparent pr-9 text-xs text-[#EBD5C2] outline-none"
+                >
+                  {SORT_OPTIONS.map((option) => (
+                    <option
+                      key={option.value}
+                      value={option.value}
+                      className="bg-[#24180F]"
+                    >
+                      {option.label}
+                    </option>
+                  ))}
+                </select>
+
+                <ChevronDown
+                  size={13}
+                  className="pointer-events-none absolute right-3 text-[#FB923C]"
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* RESULTS COUNT */}
+          <div className="mb-4 flex items-center justify-between">
+            <p className="text-[11px] text-[#B9A18D]">
+              {loading
+                ? "Discovering writings..."
+                : `${filteredPosts.length} writings`}
+
+              {!loading && totalPosts > 0 && (
+                <span className="ml-1 text-[#8F7A68]">
+                  / {totalPosts.toLocaleString()} published
+                </span>
               )}
-            </button>
+            </p>
+
+            {searchQuery && (
+              <button
+                type="button"
+                onClick={clearFilters}
+                className="text-[11px] font-medium text-[#FB923C] transition hover:text-[#FDBA74]"
+              >
+                Clear search
+              </button>
+            )}
+          </div>
+
+          {/* ERROR */}
+          {error && !loading && (
+            <div className="mb-5 flex flex-col items-center gap-3 rounded-xl border border-[#F97316]/20 bg-[#24180F] px-5 py-7 text-center shadow-[0_0_25px_rgba(249,115,22,0.04)]">
+              <div className="flex items-center gap-2 text-[#FB923C]">
+                <AlertCircle size={17} />
+                <p className="text-sm font-semibold text-[#FFF3E8]">
+                  Couldn't load Shabda Manch
+                </p>
+              </div>
+
+              <p className="text-xs text-[#B9A18D]">{error}</p>
+
+              <button
+                type="button"
+                onClick={() => setRefreshKey((previous) => previous + 1)}
+                className="flex items-center gap-2 text-xs font-semibold text-[#FB923C] transition hover:text-[#FDBA74]"
+              >
+                <RefreshCw size={14} />
+                Try again
+              </button>
+            </div>
+          )}
+
+          {/* WRITING FEED */}
+          <div className="min-h-[300px]">
+            <ShabdaFeed
+              posts={filteredPosts}
+              loading={loading}
+              onPostSelect={handlePostSelect}
+              onLike={handlePostSelect}
+              onComment={handlePostSelect}
+              onSave={handlePostSelect}
+            />
+
+            {/* SEARCH EMPTY STATE */}
+            {!loading && posts.length > 0 && filteredPosts.length === 0 && (
+              <div className="py-16 text-center">
+                <Search size={30} className="mx-auto mb-3 text-[#FB923C]/60" />
+
+                <p className="text-xl font-semibold text-[#FFF3E8]">
+                  No writings found.
+                </p>
+
+                <p className="mt-2 text-xs text-[#B9A18D]">
+                  Try another search term.
+                </p>
+
+                <button
+                  type="button"
+                  onClick={clearFilters}
+                  className="mt-4 rounded-lg border border-[#F97316]/35 bg-[#24180F] px-4 py-2 text-xs font-semibold text-[#FDBA74] transition hover:bg-[#F97316] hover:text-white hover:shadow-[0_0_18px_rgba(249,115,22,0.2)]"
+                >
+                  Clear search
+                </button>
+              </div>
+            )}
+
+            {/* EMPTY STATE */}
+            {!loading && !error && posts.length === 0 && (
+              <div className="py-16 text-center">
+                <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full border border-[#F97316]/25 bg-[#2A1B11] shadow-[0_0_25px_rgba(249,115,22,0.1)]">
+                  <BookOpen size={29} className="text-[#FB923C]" />
+                </div>
+
+                <p className="font-[Orbitron] text-xl font-semibold text-[#FFF3E8]">
+                  The first page is waiting.
+                </p>
+
+                <p className="mt-2 text-xs text-[#B9A18D]">
+                  Be the first to share a poem, story, or thought.
+                </p>
+
+                <button
+                  type="button"
+                  onClick={handleUploadClick}
+                  className="mt-5 inline-flex items-center gap-2 rounded-full bg-[#F97316] px-5 py-3 text-xs font-semibold text-white shadow-[0_0_20px_rgba(249,115,22,0.25)] transition hover:bg-[#EA650F] hover:shadow-[0_0_28px_rgba(249,115,22,0.4)]"
+                >
+                  <PenLine size={15} />
+                  Write the first post
+                </button>
+              </div>
+            )}
+          </div>
+
+          {/* LOAD MORE */}
+          {!loading && !error && hasMore && filteredPosts.length > 0 && (
+            <div className="flex justify-center pt-8">
+              <button
+                type="button"
+                onClick={handleLoadMore}
+                disabled={loadingMore}
+                className="flex items-center gap-2 rounded-full border border-[#F97316]/25 bg-[#24180F] px-6 py-2.5 text-xs font-semibold text-[#FDBA74] transition hover:border-[#FB923C]/60 hover:bg-[#2F1E12] hover:shadow-[0_0_18px_rgba(249,115,22,0.12)] disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                {loadingMore && (
+                  <LoaderCircle size={14} className="animate-spin" />
+                )}
+
+                {loadingMore ? "Loading..." : "Load more writings"}
+              </button>
+            </div>
+          )}
+        </section>
+
+        {/* FLOATING WRITE BUTTON */}
+        <button
+          type="button"
+          onClick={handleUploadClick}
+          disabled={authLoading || profileLoading}
+          aria-label="Write something"
+          className="fixed bottom-6 right-5 z-40 flex h-12 items-center gap-2 rounded-full border border-[#FDBA74]/50 bg-[#F97316] px-5 text-xs font-semibold text-white shadow-[0_0_22px_rgba(249,115,22,0.3)] transition hover:-translate-y-1 hover:bg-[#EA650F] hover:shadow-[0_0_30px_rgba(249,115,22,0.45)] disabled:cursor-not-allowed disabled:opacity-50 sm:bottom-8 sm:right-8"
+        >
+          <PenLine size={16} />
+          Write
+        </button>
+
+        {/* CREATE PROFILE */}
+        {showCreateProfile && (
+          <CreateProfile
+            onClose={() => setShowCreateProfile(false)}
+            onSuccess={handleProfileCreated}
+          />
+        )}
+
+        {/* UPLOAD MODAL */}
+        {showUpload && (
+          <div className="fixed inset-0 z-[100] overflow-y-auto bg-[#100905]/85 backdrop-blur-md">
+            <div className="min-h-screen">
+              <ShabdaUpload
+                onClose={() => setShowUpload(false)}
+                onPostCreated={handlePostCreated}
+              />
+            </div>
           </div>
         )}
-      </section>
 
-      {/* Floating write button */}
-      <button
-        type="button"
-        onClick={handleOpenUpload}
-        aria-label="Write something"
-        className="fixed bottom-6 right-5 z-40 flex h-14 items-center gap-2 rounded-full bg-[#E5092D] px-5 text-xs font-semibold text-white shadow-xl transition hover:-translate-y-1 hover:bg-[#C90024] sm:bottom-8 sm:right-8"
-      >
-        <PenLine size={17} />
-        <span>Write</span>
-      </button>
+        {/* POST DETAILS MODAL */}
+        {selectedPost && (
+          <ShabdaPostDetails
+            key={selectedPost._id}
+            post={selectedPost}
+            onClose={handleCloseDetails}
+            onPostUpdated={handlePostUpdated}
+            currentUserId={currentUserId}
+          />
+        )}
+      </main>
 
-      {/* Upload modal */}
-      {showUpload && (
-        <ShabdaUpload
-          onClose={() => setShowUpload(false)}
-          onPostCreated={handlePostCreated}
-        />
-      )}
-
-      {/* Post details modal */}
-      {selectedPost && (
-        <ShabdaPostDetails
-          key={selectedPost._id}
-          post={selectedPost}
-          onClose={handleCloseDetails}
-          onPostUpdated={handlePostUpdated}
-          currentUserId={currentUserId}
-        />
-      )}
-    </main>
+      {/* INTRO LOADER */}
+      {showIntroLoader && <ShabdaIntroLoader />}
+    </>
   );
 };
 

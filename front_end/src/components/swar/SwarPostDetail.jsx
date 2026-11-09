@@ -13,6 +13,8 @@ import {
   Headphones,
   Disc3,
   Radio,
+  AudioLines,
+  Play,
 } from "lucide-react";
 
 import SwarAudioPlayer from "./SwarAudioPlayer";
@@ -38,7 +40,18 @@ const getInitials = (name = "User") =>
 const getErrorMessage = (error, fallback) =>
   error?.response?.data?.message || error?.message || fallback;
 
-const getAudioUrl = (post) => post?.media?.url || post?.audioUrl || "";
+const getAudioUrl = (post) => {
+  const media = post?.media;
+  const audio = post?.audio;
+
+  if (typeof media === "string") return media;
+  if (typeof media?.url === "string") return media.url;
+
+  if (typeof audio === "string") return audio;
+  if (typeof audio?.url === "string") return audio.url;
+
+  return post?.audioUrl || post?.mediaUrl || "";
+};
 
 const getComments = (data) => {
   if (Array.isArray(data)) return data;
@@ -71,6 +84,22 @@ const formatDate = (date) => {
   });
 };
 
+const formatCount = (value) => {
+  const count = Number(value);
+
+  if (!Number.isFinite(count) || count < 0) return "0";
+
+  if (count >= 1000000) {
+    return `${(count / 1000000).toFixed(1).replace(/\.0$/, "")}M`;
+  }
+
+  if (count >= 1000) {
+    return `${(count / 1000).toFixed(1).replace(/\.0$/, "")}K`;
+  }
+
+  return String(count);
+};
+
 const SwarPostDetail = ({
   post: initialPost,
   onClose,
@@ -79,8 +108,6 @@ const SwarPostDetail = ({
 }) => {
   const navigate = useNavigate();
 
-  // The parent uses key={selectedPost._id}, so this component is
-  // mounted fresh whenever a different post is selected.
   const postId = initialPost?._id;
 
   const [post, setPost] = useState(() => initialPost || {});
@@ -107,11 +134,9 @@ const SwarPostDetail = ({
 
   const commentInputRef = useRef(null);
 
-  // Keep the latest parent callback without changing updatePost's identity.
   const onPostUpdatedRef = useRef(onPostUpdated);
   onPostUpdatedRef.current = onPostUpdated;
 
-  // Keep the latest close callback for the keyboard listener.
   const onCloseRef = useRef(onClose);
   onCloseRef.current = onClose;
 
@@ -143,8 +168,7 @@ const SwarPostDetail = ({
       ? post.commentsCount
       : comments.length;
 
-  // Update the local post and notify the parent.
-  // This function has a stable identity and does not depend on props.
+  // Update post and notify parent.
   const updatePost = useCallback((updatedFields) => {
     const currentPost = postRef.current;
 
@@ -171,7 +195,6 @@ const SwarPostDetail = ({
   }, []);
 
   // Lock background scrolling and support Escape.
-  // The listener is registered only once.
   useEffect(() => {
     const previousOverflow = document.body.style.overflow;
 
@@ -191,9 +214,7 @@ const SwarPostDetail = ({
     };
   }, []);
 
-  // Load comments, like status and saved status.
-  // updatePost is stable, so this effect will not repeatedly run
-  // because the parent creates a new callback.
+  // Load comments, likes and saved status.
   useEffect(() => {
     if (!postId || !API_URL) {
       setLoadingComments(false);
@@ -286,7 +307,7 @@ const SwarPostDetail = ({
     };
   }, [postId, updateComments, updatePost]);
 
-  // Navigate to a creator's profile.
+  // Navigate to creator profile.
   const handleProfileClick = (userId) => {
     if (!userId) return;
 
@@ -391,9 +412,7 @@ const SwarPostDetail = ({
 
     const content = commentText.trim();
 
-    if (!content || !postId || submittingComment || !API_URL) {
-      return;
-    }
+    if (!content || !postId || submittingComment || !API_URL) return;
 
     setSubmittingComment(true);
     setError("");
@@ -469,23 +488,18 @@ const SwarPostDetail = ({
     <>
       <style>{`
         @keyframes swar-wave {
-          0%, 100% { transform: scaleY(0.28); opacity: 0.48; }
+          0%, 100% { transform: scaleY(0.3); opacity: 0.4; }
           50% { transform: scaleY(1); opacity: 1; }
         }
 
         @keyframes swar-orbit {
-          0% { transform: rotate(0deg); }
-          100% { transform: rotate(360deg); }
+          from { transform: rotate(0deg); }
+          to { transform: rotate(360deg); }
         }
 
         @keyframes swar-pulse {
-          0%, 100% { transform: scale(0.96); opacity: 0.45; }
-          50% { transform: scale(1.05); opacity: 0.9; }
-        }
-
-        @keyframes swar-glow {
-          0%, 100% { opacity: 0.2; }
-          50% { opacity: 0.55; }
+          0%, 100% { transform: scale(0.96); opacity: 0.35; }
+          50% { transform: scale(1.04); opacity: 0.85; }
         }
 
         .swar-wave-bar {
@@ -494,36 +508,31 @@ const SwarPostDetail = ({
         }
 
         .swar-orbit {
-          animation: swar-orbit 22s linear infinite;
+          animation: swar-orbit 25s linear infinite;
         }
 
         .swar-pulse {
           animation: swar-pulse 3s ease-in-out infinite;
         }
 
-        .swar-glow {
-          animation: swar-glow 3s ease-in-out infinite;
-        }
-
         @media (prefers-reduced-motion: reduce) {
           .swar-wave-bar,
           .swar-orbit,
-          .swar-pulse,
-          .swar-glow {
+          .swar-pulse {
             animation: none !important;
           }
         }
       `}</style>
 
       <div
-        className="fixed inset-0 z-[120] flex items-center justify-center bg-[#100D10]/75 p-0 backdrop-blur-md sm:p-5"
+        className="fixed inset-0 z-[120] flex items-center justify-center bg-[#02030D]/85 p-0 backdrop-blur-xl sm:p-4 lg:p-6"
         onMouseDown={handleOverlayClick}
       >
         <section
           role="dialog"
           aria-modal="true"
           aria-label="Performance details"
-          className="relative flex h-full w-full max-w-6xl flex-col overflow-hidden bg-[#FCFBF9] shadow-2xl sm:h-[min(90vh,880px)] sm:flex-row sm:rounded-[28px]"
+          className="relative flex h-full w-full max-w-7xl flex-col overflow-hidden border border-[#8B5CF6]/20 bg-[#07091A] shadow-[0_25px_100px_rgba(0,0,0,0.65)] sm:h-[min(92vh,900px)] sm:flex-row sm:rounded-2xl"
           onMouseDown={(event) => event.stopPropagation()}
         >
           {/* Close button */}
@@ -531,94 +540,96 @@ const SwarPostDetail = ({
             type="button"
             onClick={() => onCloseRef.current?.()}
             aria-label="Close post details"
-            className="absolute right-4 top-4 z-30 flex h-10 w-10 items-center justify-center rounded-full border border-white/15 bg-black/25 text-white backdrop-blur-md transition hover:rotate-90 hover:bg-black/50"
+            className="absolute right-4 top-4 z-40 flex h-10 w-10 items-center justify-center rounded-full border border-white/10 bg-[#08091D]/75 text-white/75 backdrop-blur-xl transition hover:border-[#A78BFA]/50 hover:bg-[#8B5CF6] hover:text-white"
           >
             <X size={19} />
           </button>
 
-          {/* Audio experience */}
-          <div className="relative flex min-h-[370px] w-full shrink-0 flex-col justify-between overflow-hidden bg-[#171318] px-6 pb-7 pt-8 text-white sm:min-h-0 sm:w-[48%] sm:px-9 sm:py-9 lg:w-[50%]">
+          {/* LEFT: Music experience */}
+          <div className="relative flex min-h-[360px] w-full shrink-0 flex-col justify-between overflow-hidden bg-[#05051A] px-6 pb-6 pt-7 text-white sm:min-h-0 sm:w-[48%] sm:px-8 sm:py-8 lg:w-[50%]">
+            {/* Background effects */}
             <div className="pointer-events-none absolute inset-0 overflow-hidden">
-              <div className="swar-glow absolute -left-28 top-16 h-80 w-80 rounded-full bg-[#E5092D]/15 blur-[100px]" />
-              <div className="swar-glow absolute -bottom-32 right-0 h-80 w-80 rounded-full bg-[#8C4264]/20 blur-[100px]" />
+              <div className="absolute -left-32 top-20 h-80 w-80 rounded-full bg-[#8B5CF6]/20 blur-[110px]" />
+              <div className="absolute -right-20 bottom-0 h-80 w-80 rounded-full bg-[#00D4FF]/10 blur-[110px]" />
 
               <div
                 className="absolute inset-0 opacity-[0.035]"
                 style={{
                   backgroundImage:
                     "radial-gradient(#ffffff 0.7px, transparent 0.7px)",
-                  backgroundSize: "12px 12px",
+                  backgroundSize: "13px 13px",
                 }}
               />
+
+              <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-[#8B5CF6]/60 to-transparent" />
             </div>
 
-            {/* Top label */}
+            {/* Brand header */}
             <div className="relative z-10 flex items-center justify-between">
-              <div className="flex items-center gap-2.5">
-                <div className="flex h-9 w-9 items-center justify-center rounded-xl border border-white/10 bg-white/[0.06]">
-                  <Music2 size={17} className="text-[#FF647D]" />
+              <div className="flex items-center gap-3">
+                <div className="flex h-10 w-10 items-center justify-center rounded-xl border border-[#8B5CF6]/30 bg-[#8B5CF6]/10 text-[#A78BFA]">
+                  <AudioLines size={22} />
                 </div>
 
                 <div>
-                  <p className="text-[11px] font-bold tracking-[0.24em] text-white/80">
+                  <p className="font-orbitron text-xs font-bold tracking-[0.2em] text-white">
                     PRATIVA
                   </p>
-                  <p className="text-[9px] tracking-[0.2em] text-white/35">
+                  <p className="mt-1 text-[9px] tracking-[0.24em] text-[#A78BFA]/70">
                     SWAR MANCH
                   </p>
                 </div>
               </div>
 
-              <div className="flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.05] px-3 py-1.5">
+              <div className="flex items-center gap-2 rounded-full border border-[#8B5CF6]/20 bg-[#8B5CF6]/10 px-3 py-1.5">
                 <span className="relative flex h-2 w-2">
-                  <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[#FF526D] opacity-60" />
-                  <span className="relative inline-flex h-2 w-2 rounded-full bg-[#FF526D]" />
+                  <span className="absolute h-full w-full animate-ping rounded-full bg-[#00D4FF] opacity-60" />
+                  <span className="relative h-2 w-2 rounded-full bg-[#00D4FF]" />
                 </span>
-                <span className="text-[10px] font-medium tracking-wider text-white/65">
-                  SOUND ON
+                <span className="text-[9px] font-semibold tracking-[0.18em] text-[#C4B5FD]">
+                  NOW PLAYING
                 </span>
               </div>
             </div>
 
-            {/* Record artwork */}
-            <div className="relative z-10 flex flex-1 flex-col items-center justify-center py-7">
+            {/* Vinyl illustration */}
+            <div className="relative z-10 flex flex-1 flex-col items-center justify-center py-6">
               <div className="relative flex h-56 w-56 items-center justify-center sm:h-64 sm:w-64 lg:h-72 lg:w-72">
-                <div className="swar-pulse absolute inset-0 rounded-full border border-[#FF526D]/20" />
-                <div className="swar-orbit absolute inset-3 rounded-full border border-dashed border-white/10" />
-                <div className="absolute inset-7 rounded-full bg-[#E5092D]/10 blur-2xl" />
+                <div className="swar-pulse absolute inset-0 rounded-full border border-[#8B5CF6]/30" />
 
-                <div className="relative flex h-[78%] w-[78%] items-center justify-center rounded-full border border-white/10 bg-[repeating-radial-gradient(circle_at_center,#29242B_0px,#29242B_2px,#19161B_3px,#19161B_5px)] shadow-[0_20px_70px_rgba(0,0,0,0.55)]">
-                  <div className="absolute inset-[12%] rounded-full border border-white/[0.07]" />
-                  <div className="absolute inset-[24%] rounded-full border border-white/[0.07]" />
-                  <div className="absolute inset-[36%] rounded-full border border-white/[0.07]" />
+                <div className="swar-orbit absolute inset-3 rounded-full border border-dashed border-[#A78BFA]/20" />
 
-                  <div className="relative flex h-[35%] w-[35%] items-center justify-center overflow-hidden rounded-full border-4 border-[#30242A] bg-gradient-to-br from-[#E5092D] to-[#7D1937] shadow-lg">
-                    <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_25%,rgba(255,255,255,0.3),transparent_55%)]" />
-                    <Music2
-                      size={31}
-                      className="relative text-white sm:h-9 sm:w-9"
-                    />
+                <div className="absolute inset-7 rounded-full bg-[#8B5CF6]/20 blur-3xl" />
+
+                <div className="relative flex h-[78%] w-[78%] items-center justify-center rounded-full border border-white/10 bg-[repeating-radial-gradient(circle_at_center,#28243C_0px,#28243C_2px,#151329_3px,#151329_5px)] shadow-[0_20px_70px_rgba(0,0,0,0.6)]">
+                  <div className="absolute inset-[12%] rounded-full border border-white/[0.08]" />
+                  <div className="absolute inset-[24%] rounded-full border border-white/[0.08]" />
+                  <div className="absolute inset-[36%] rounded-full border border-white/[0.08]" />
+
+                  <div className="relative flex h-[35%] w-[35%] items-center justify-center overflow-hidden rounded-full border-4 border-[#262044] bg-gradient-to-br from-[#8B5CF6] to-[#31216E] shadow-[0_0_30px_rgba(139,92,246,0.35)]">
+                    <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_25%,rgba(255,255,255,0.35),transparent_55%)]" />
+                    <Music2 size={32} className="relative text-white" />
                   </div>
                 </div>
 
-                <div className="absolute -right-1 top-8 flex h-11 w-11 items-center justify-center rounded-full border border-white/10 bg-white/[0.05] backdrop-blur-md">
-                  <Headphones size={18} className="text-[#FF7186]" />
+                <div className="absolute -right-1 top-8 flex h-11 w-11 items-center justify-center rounded-full border border-[#8B5CF6]/30 bg-[#11102D]/80 text-[#A78BFA] backdrop-blur-md">
+                  <Headphones size={19} />
                 </div>
 
-                <div className="absolute -bottom-1 left-5 flex h-10 w-10 items-center justify-center rounded-full border border-white/10 bg-white/[0.05] backdrop-blur-md">
-                  <Radio size={17} className="text-white/65" />
+                <div className="absolute -bottom-1 left-5 flex h-10 w-10 items-center justify-center rounded-full border border-[#00D4FF]/20 bg-[#091A2C]/80 text-[#00D4FF] backdrop-blur-md">
+                  <Radio size={17} />
                 </div>
               </div>
 
               {/* Equalizer */}
               <div className="mt-8 flex h-10 items-center justify-center gap-[5px]">
                 {Array.from({ length: 39 }).map((_, index) => {
-                  const height = 10 + Math.abs(Math.sin(index * 0.7)) * 25;
+                  const height = 9 + Math.abs(Math.sin(index * 0.7)) * 25;
 
                   return (
                     <span
                       key={index}
-                      className="swar-wave-bar w-[3px] rounded-full bg-gradient-to-t from-[#E5092D] to-[#FF8B9C]"
+                      className="swar-wave-bar w-[3px] rounded-full bg-gradient-to-t from-[#6D28D9] via-[#8B5CF6] to-[#00D4FF]"
                       style={{
                         height: `${height}px`,
                         animationDelay: `${(index % 9) * -110}ms`,
@@ -629,24 +640,24 @@ const SwarPostDetail = ({
                 })}
               </div>
 
-              <p className="mt-3 text-[9px] font-semibold tracking-[0.35em] text-white/35">
-                A MOMENT IN SOUND
+              <p className="mt-3 text-[9px] font-semibold tracking-[0.35em] text-[#A78BFA]/50">
+                LISTEN. CREATE. CONNECT.
               </p>
             </div>
 
-            {/* Track information and player */}
+            {/* Track information */}
             <div className="relative z-10">
               <div className="mb-5">
-                <div className="mb-2 flex items-center gap-2 text-[10px] font-semibold uppercase tracking-[0.22em] text-[#FF7186]">
-                  <Disc3 size={13} />
-                  <span>Now presenting</span>
+                <div className="mb-2 flex items-center gap-2 text-[10px] font-semibold uppercase tracking-[0.22em] text-[#A78BFA]">
+                  <Disc3 size={14} />
+                  <span>Featured performance</span>
                 </div>
 
-                <h2 className="max-w-full break-words font-serif text-3xl leading-tight tracking-tight text-white sm:text-4xl">
+                <h2 className="max-w-full break-words font-orbitron text-2xl font-bold leading-tight text-white sm:text-3xl">
                   {post?.title || "Untitled performance"}
                 </h2>
 
-                <p className="mt-2 text-sm text-white/45">
+                <p className="mt-2 text-sm text-gray-400">
                   {authorName}
                   {post?.subCategory
                     ? ` · ${String(post.subCategory).replaceAll("-", " ")}`
@@ -655,39 +666,39 @@ const SwarPostDetail = ({
               </div>
 
               {audioUrl ? (
-                <div className="rounded-2xl border border-white/10 bg-white/[0.07] p-3 shadow-xl backdrop-blur-xl sm:p-4">
+                <div className="rounded-2xl border border-[#8B5CF6]/20 bg-[#0C0D27]/90 p-3 shadow-xl sm:p-4">
                   <SwarAudioPlayer key={audioUrl} src={audioUrl} />
                 </div>
               ) : (
-                <div className="rounded-2xl border border-white/10 bg-white/[0.05] p-5 text-sm text-white/50">
-                  Audio is unavailable.
+                <div className="rounded-2xl border border-white/10 bg-white/[0.04] p-5 text-sm text-gray-500">
+                  Audio is currently unavailable.
                 </div>
               )}
 
-              <div className="mt-5 flex items-center justify-between text-xs text-white/45">
+              <div className="mt-5 flex items-center justify-between text-xs text-gray-400">
                 <span className="flex items-center gap-2">
-                  <Heart size={14} />
-                  {likesCount} likes
+                  <Heart size={14} className="text-[#A78BFA]" />
+                  {formatCount(likesCount)} likes
                 </span>
 
                 <span className="flex items-center gap-2">
-                  <MessageCircle size={14} />
-                  {commentsCount} comments
+                  <MessageCircle size={14} className="text-[#00D4FF]" />
+                  {formatCount(commentsCount)} comments
                 </span>
               </div>
             </div>
           </div>
 
-          {/* Creator, post details and conversation */}
-          <div className="flex min-h-0 w-full flex-1 flex-col bg-[#FCFBF9] sm:w-[52%] lg:w-[50%]">
-            <div className="flex-1 overflow-y-auto px-5 pb-6 pt-16 sm:px-8 sm:pt-9">
+          {/* RIGHT: Community and conversation */}
+          <div className="flex min-h-0 w-full flex-1 flex-col border-t border-white/[0.07] bg-[#08091D] sm:w-[52%] sm:border-l sm:border-t-0 lg:w-[50%]">
+            <div className="flex-1 overflow-y-auto px-5 pb-6 pt-16 sm:px-7 sm:pt-8">
               {/* Creator */}
               <div className="flex items-center gap-3">
                 <button
                   type="button"
                   onClick={() => handleProfileClick(authorId)}
                   disabled={!authorId}
-                  className="flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-full bg-[#EDE7E2] text-sm font-semibold text-[#655B55] disabled:cursor-default"
+                  className="flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-full border border-[#8B5CF6]/30 bg-[#171333] text-sm font-semibold text-[#C4B5FD] disabled:cursor-default"
                 >
                   {authorImage && !authorImageError ? (
                     <img
@@ -706,19 +717,19 @@ const SwarPostDetail = ({
                     type="button"
                     onClick={() => handleProfileClick(authorId)}
                     disabled={!authorId}
-                    className="block max-w-full truncate text-sm font-semibold text-[#292523] transition hover:text-[#E5092D] disabled:cursor-default"
+                    className="block max-w-full truncate text-sm font-semibold text-white transition hover:text-[#A78BFA] disabled:cursor-default"
                   >
                     {authorName}
                   </button>
 
                   {authorUsername && (
-                    <p className="truncate text-xs text-[#99918B]">
+                    <p className="truncate text-xs text-gray-500">
                       @{authorUsername}
                     </p>
                   )}
                 </div>
 
-                <span className="shrink-0 text-xs text-[#99918B]">
+                <span className="shrink-0 text-xs text-gray-500">
                   {formatDate(post?.createdAt)}
                 </span>
               </div>
@@ -726,7 +737,7 @@ const SwarPostDetail = ({
               {/* Description */}
               {post?.description && (
                 <div className="mt-7">
-                  <p className="whitespace-pre-wrap break-words text-sm leading-7 text-[#5F5853]">
+                  <p className="whitespace-pre-wrap break-words text-sm leading-7 text-gray-300">
                     {post.description}
                   </p>
                 </div>
@@ -738,7 +749,7 @@ const SwarPostDetail = ({
                   {post.tags.map((tag, index) => (
                     <span
                       key={`${tag}-${index}`}
-                      className="rounded-full bg-[#F1ECE8] px-3 py-1.5 text-xs text-[#82766E]"
+                      className="rounded-full border border-[#8B5CF6]/20 bg-[#8B5CF6]/[0.08] px-3 py-1.5 text-xs text-[#C4B5FD]"
                     >
                       #{tag}
                     </span>
@@ -747,7 +758,7 @@ const SwarPostDetail = ({
               )}
 
               {/* Interaction bar */}
-              <div className="mt-7 flex items-center justify-between border-y border-[#EEE9E4] py-4">
+              <div className="mt-7 flex items-center justify-between border-y border-white/[0.08] py-4">
                 <div className="flex items-center gap-5">
                   <button
                     type="button"
@@ -758,8 +769,8 @@ const SwarPostDetail = ({
                     }
                     className={`flex items-center gap-2 text-sm transition disabled:opacity-50 ${
                       liked
-                        ? "text-[#E5092D]"
-                        : "text-[#716963] hover:text-[#E5092D]"
+                        ? "text-[#FF4DB8]"
+                        : "text-gray-400 hover:text-[#FF4DB8]"
                     }`}
                   >
                     {liking ? (
@@ -767,16 +778,16 @@ const SwarPostDetail = ({
                     ) : (
                       <Heart size={19} fill={liked ? "currentColor" : "none"} />
                     )}
-                    <span>{likesCount}</span>
+                    <span>{formatCount(likesCount)}</span>
                   </button>
 
                   <button
                     type="button"
                     onClick={() => commentInputRef.current?.focus()}
-                    className="flex items-center gap-2 text-sm text-[#716963] transition hover:text-[#E5092D]"
+                    className="flex items-center gap-2 text-sm text-gray-400 transition hover:text-[#00D4FF]"
                   >
                     <MessageCircle size={19} />
-                    <span>{comments.length}</span>
+                    <span>{formatCount(comments.length)}</span>
                   </button>
                 </div>
 
@@ -787,10 +798,10 @@ const SwarPostDetail = ({
                   aria-label={
                     saved ? "Remove from saved posts" : "Save performance"
                   }
-                  className={`flex items-center gap-2 rounded-full px-4 py-2 text-sm font-medium transition disabled:opacity-50 ${
+                  className={`flex items-center gap-2 rounded-full border px-4 py-2 text-sm font-medium transition disabled:opacity-50 ${
                     saved
-                      ? "bg-[#FCE8EC] text-[#E5092D]"
-                      : "bg-[#F1ECE8] text-[#716963] hover:bg-[#FCE8EC] hover:text-[#E5092D]"
+                      ? "border-[#8B5CF6]/40 bg-[#8B5CF6]/15 text-[#C4B5FD]"
+                      : "border-white/10 bg-white/[0.03] text-gray-400 hover:border-[#8B5CF6]/40 hover:text-[#A78BFA]"
                   }`}
                 >
                   {saving ? (
@@ -806,46 +817,50 @@ const SwarPostDetail = ({
                 </button>
               </div>
 
-              {/* Error message */}
+              {/* Error */}
               {error && (
-                <div className="mt-4 rounded-xl border border-red-100 bg-red-50 px-4 py-3 text-sm text-red-600">
+                <div className="mt-4 rounded-xl border border-red-500/20 bg-red-500/[0.07] px-4 py-3 text-sm text-red-400">
                   {error}
                 </div>
               )}
 
-              {/* Conversation */}
+              {/* Conversation header */}
               <div className="mb-5 mt-7 flex items-center justify-between">
                 <div>
-                  <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-[#B0A49B]">
-                    Community
+                  <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-[#8B5CF6]">
+                    SWARGUNJ COMMUNITY
                   </p>
-                  <h3 className="mt-1 font-serif text-2xl text-[#292523]">
+
+                  <h3 className="mt-1 font-orbitron text-lg font-bold text-white">
                     Conversation
                   </h3>
                 </div>
 
-                <span className="rounded-full bg-[#F1ECE8] px-3 py-1.5 text-xs text-[#82766E]">
+                <span className="rounded-full border border-[#8B5CF6]/20 bg-[#8B5CF6]/[0.08] px-3 py-1.5 text-xs text-[#C4B5FD]">
                   {comments.length} thoughts
                 </span>
               </div>
 
               {/* Comments */}
               {loadingComments ? (
-                <div className="flex items-center justify-center gap-2 py-12 text-sm text-[#99918B]">
-                  <LoaderCircle size={17} className="animate-spin" />
+                <div className="flex items-center justify-center gap-2 py-12 text-sm text-gray-500">
+                  <LoaderCircle
+                    size={17}
+                    className="animate-spin text-[#A78BFA]"
+                  />
                   Loading conversation...
                 </div>
               ) : comments.length === 0 ? (
-                <div className="rounded-2xl border border-dashed border-[#E5DDD6] px-5 py-10 text-center">
-                  <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-[#F1ECE8] text-[#9B8F86]">
+                <div className="rounded-2xl border border-dashed border-[#8B5CF6]/25 bg-[#8B5CF6]/[0.035] px-5 py-10 text-center">
+                  <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full border border-[#8B5CF6]/20 bg-[#8B5CF6]/10 text-[#A78BFA]">
                     <MessageCircle size={21} />
                   </div>
 
-                  <p className="font-serif text-lg text-[#625A54]">
-                    A quiet beginning.
+                  <p className="font-orbitron text-sm font-semibold text-white">
+                    Start the conversation.
                   </p>
 
-                  <p className="mt-1 text-xs text-[#A39A93]">
+                  <p className="mt-2 text-xs text-gray-500">
                     Be the first to share what you felt.
                   </p>
                 </div>
@@ -859,7 +874,6 @@ const SwarPostDetail = ({
                       commentUser?.name || commentUser?.username || "User";
 
                     const commentUsername = commentUser?.username || "";
-
                     const commentImage = commentUser?.profileImage || "";
 
                     const commentUserId = getCommentAuthorId(comment);
@@ -879,7 +893,7 @@ const SwarPostDetail = ({
                           type="button"
                           onClick={() => handleProfileClick(commentUserId)}
                           disabled={!commentUserId}
-                          className="flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-full bg-[#EDE7E2] text-xs font-semibold text-[#655B55] disabled:cursor-default"
+                          className="flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-full border border-white/10 bg-[#171333] text-xs font-semibold text-[#C4B5FD] disabled:cursor-default"
                         >
                           {commentImage && !imageFailed ? (
                             <img
@@ -904,18 +918,18 @@ const SwarPostDetail = ({
                               type="button"
                               onClick={() => handleProfileClick(commentUserId)}
                               disabled={!commentUserId}
-                              className="text-sm font-semibold text-[#332D29] transition hover:text-[#E5092D] disabled:cursor-default"
+                              className="text-sm font-semibold text-gray-200 transition hover:text-[#A78BFA] disabled:cursor-default"
                             >
                               {commentName}
                             </button>
 
                             {commentUsername && (
-                              <span className="text-xs text-[#A39A93]">
+                              <span className="text-xs text-gray-600">
                                 @{commentUsername}
                               </span>
                             )}
 
-                            <span className="text-xs text-[#B2AAA3]">
+                            <span className="text-xs text-gray-600">
                               {formatDate(comment.createdAt)}
                             </span>
 
@@ -925,7 +939,7 @@ const SwarPostDetail = ({
                                 onClick={() => handleDeleteComment(commentId)}
                                 disabled={deletingComment === commentId}
                                 aria-label="Delete comment"
-                                className="ml-auto flex items-center gap-1 text-xs text-[#A39A93] transition hover:text-red-600 disabled:opacity-50"
+                                className="ml-auto flex items-center gap-1 text-xs text-gray-500 transition hover:text-red-400 disabled:opacity-50"
                               >
                                 {deletingComment === commentId ? (
                                   <LoaderCircle
@@ -939,7 +953,7 @@ const SwarPostDetail = ({
                             )}
                           </div>
 
-                          <p className="mt-1 whitespace-pre-wrap break-words text-sm leading-6 text-[#625A54]">
+                          <p className="mt-1 whitespace-pre-wrap break-words text-sm leading-6 text-gray-400">
                             {getCommentContent(comment)}
                           </p>
                         </div>
@@ -953,7 +967,7 @@ const SwarPostDetail = ({
             {/* Comment input */}
             <form
               onSubmit={handleSubmitComment}
-              className="flex shrink-0 items-center gap-3 border-t border-[#EEE9E4] bg-white px-4 py-4 sm:px-7"
+              className="flex shrink-0 items-center gap-3 border-t border-white/[0.08] bg-[#090A20] px-4 py-4 sm:px-7"
             >
               <input
                 ref={commentInputRef}
@@ -962,14 +976,14 @@ const SwarPostDetail = ({
                 onChange={(event) => setCommentText(event.target.value)}
                 maxLength={1000}
                 placeholder="Share what you felt..."
-                className="min-w-0 flex-1 rounded-full border border-[#EEE9E4] bg-[#FAF9F7] px-4 py-3 text-sm text-[#292523] outline-none transition placeholder:text-[#AAA19A] focus:border-[#E5092D]"
+                className="min-w-0 flex-1 rounded-full border border-white/10 bg-[#10112C] px-4 py-3 text-sm text-white outline-none transition placeholder:text-gray-600 focus:border-[#8B5CF6]/70 focus:ring-2 focus:ring-[#8B5CF6]/10"
               />
 
               <button
                 type="submit"
                 disabled={!commentText.trim() || submittingComment}
                 aria-label="Send comment"
-                className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-[#E5092D] text-white transition hover:bg-[#C90024] disabled:cursor-not-allowed disabled:opacity-40"
+                className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-gradient-to-r from-[#7C3AED] to-[#8B5CF6] text-white shadow-[0_0_20px_rgba(139,92,246,0.2)] transition hover:shadow-[0_0_25px_rgba(139,92,246,0.4)] disabled:cursor-not-allowed disabled:opacity-40"
               >
                 {submittingComment ? (
                   <LoaderCircle size={18} className="animate-spin" />

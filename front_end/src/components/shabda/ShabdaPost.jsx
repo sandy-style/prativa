@@ -155,50 +155,57 @@ const ShabdaPost = ({
       aria-label={`Read ${title || "written work"} by ${authorName}`}
       className="
         group relative flex h-full cursor-pointer flex-col overflow-hidden
-        rounded-2xl border border-[#eae6e0] bg-white
+        rounded-xl border border-[#F97316]/15 bg-[#1D140D]
+        shadow-[0_8px_25px_rgba(0,0,0,0.18)]
         transition-all duration-300
-        hover:-translate-y-1 hover:border-[#f0b8c2]
-        hover:shadow-[0_16px_40px_rgba(70,35,40,0.08)]
+        hover:-translate-y-1 hover:border-[#FB923C]/45
+        hover:shadow-[0_14px_35px_rgba(249,115,22,0.10)]
         focus-visible:outline-none focus-visible:ring-2
-        focus-visible:ring-[#E5092D] focus-visible:ring-offset-2
+        focus-visible:ring-[#F97316] focus-visible:ring-offset-2
+        focus-visible:ring-offset-[#17100B]
       "
     >
-      {/* Top accent */}
-      <div className="h-[3px] w-full bg-gradient-to-r from-[#E5092D]/20 via-[#E5092D] to-[#E5092D]/20 opacity-70 transition-opacity group-hover:opacity-100" />
+      {/* TOP ORANGE ACCENT */}
+      <div className="relative h-[3px] w-full overflow-hidden bg-[#F97316]/10">
+        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-[#F97316] to-transparent opacity-70 transition-all duration-300 group-hover:opacity-100 group-hover:shadow-[0_0_15px_rgba(249,115,22,0.8)]" />
+      </div>
 
-      {/* Post content */}
-      <div className="flex flex-1 flex-col px-6 pb-5 pt-6 sm:px-7 sm:pt-7">
-        {/* Category */}
-        <div className="mb-6 flex items-center justify-between">
-          <div className="flex items-center gap-2 text-[#99918B]">
-            <Feather size={14} strokeWidth={1.6} />
+      {/* CARD CONTENT */}
+      <div className="relative flex flex-1 flex-col px-5 pb-5 pt-5 sm:px-6 sm:pt-6">
+        {/* SUBTLE CARD GLOW */}
+        <div className="pointer-events-none absolute -right-16 -top-16 h-36 w-36 rounded-full bg-[#F97316]/[0.035] blur-[65px] transition-opacity duration-300 group-hover:bg-[#F97316]/[0.09]" />
 
-            <span className="text-[10px] font-semibold uppercase tracking-[0.22em]">
-              ShabdaManch
+        {/* CATEGORY */}
+        <div className="relative mb-6 flex items-center justify-between">
+          <div className="flex items-center gap-2 text-[#B9A18D]">
+            <Feather size={14} strokeWidth={1.7} />
+
+            <span className="text-[10px] font-semibold uppercase tracking-[0.2em]">
+              Shabda Manch
             </span>
           </div>
 
           <ArrowUpRight
             size={17}
             strokeWidth={1.5}
-            className="text-[#B7AFA8] transition-all duration-300 group-hover:-translate-y-0.5 group-hover:translate-x-0.5 group-hover:text-[#E5092D]"
+            className="text-[#8F7A68] transition-all duration-300 group-hover:-translate-y-0.5 group-hover:translate-x-0.5 group-hover:text-[#FB923C]"
           />
         </div>
 
-        {/* Title */}
+        {/* TITLE */}
         {title && (
-          <h2 className="mb-4 text-[24px] font-semibold leading-tight tracking-[-0.025em] text-[#292424] sm:text-[27px]">
+          <h2 className="relative mb-4 text-[23px] font-semibold leading-tight tracking-[-0.025em] text-[#FFF3E8] transition-colors duration-300 group-hover:text-[#FDBA74] sm:text-[26px]">
             {title}
           </h2>
         )}
 
-        {/* Short content preview */}
+        {/* CONTENT PREVIEW */}
         {content && (
           <div
             className="
-              mb-4 line-clamp-5 overflow-hidden
+              relative mb-4 line-clamp-5 overflow-hidden
               whitespace-pre-wrap break-words
-              text-[16px] leading-[1.9] text-[#625C58]
+              text-[16px] leading-[1.9] text-[#E0CDBB]
             "
             style={{
               fontFamily: font.fontFamily,
@@ -210,15 +217,15 @@ const ShabdaPost = ({
           </div>
         )}
 
-        {/* Description preview */}
+        {/* DESCRIPTION */}
         {description && (
-          <p className="mb-4 line-clamp-2 border-l-2 border-[#E5092D]/30 pl-3 text-[12px] leading-relaxed text-[#99918B]">
+          <p className="relative mb-4 line-clamp-2 border-l-2 border-[#F97316]/60 pl-3 text-[12px] leading-relaxed text-[#B9A18D]">
             {description}
           </p>
         )}
 
-        {/* Read full post */}
-        <div className="mt-auto flex items-center gap-2 pt-2 text-[#E5092D] transition-colors group-hover:text-[#C90024]">
+        {/* READ FULL POST */}
+        <div className="relative mt-auto flex items-center gap-2 pt-3 text-[#FB923C] transition-colors group-hover:text-[#FDBA74]">
           <BookOpen size={13} strokeWidth={1.8} />
 
           <span className="text-[11px] font-semibold tracking-wide">
@@ -231,20 +238,20 @@ const ShabdaPost = ({
           />
         </div>
 
-        {/* Tags */}
+        {/* TAGS */}
         {tags.length > 0 && (
-          <div className="mt-4 flex flex-wrap gap-2">
+          <div className="relative mt-4 flex flex-wrap gap-2">
             {tags.slice(0, 5).map((tag, index) => (
               <span
                 key={`${tag}-${index}`}
-                className="rounded-full bg-[#FCEAED] px-3 py-1 text-[10px] font-medium text-[#B83249]"
+                className="rounded-full border border-[#F97316]/20 bg-[#F97316]/[0.07] px-3 py-1 text-[10px] font-medium text-[#FDBA74] transition-colors group-hover:border-[#F97316]/30"
               >
                 #{tag}
               </span>
             ))}
 
             {tags.length > 5 && (
-              <span className="px-1 py-1 text-[10px] text-[#99918B]">
+              <span className="px-1 py-1 text-[10px] text-[#8F7A68]">
                 +{tags.length - 5}
               </span>
             )}
@@ -252,9 +259,9 @@ const ShabdaPost = ({
         )}
       </div>
 
-      {/* Author and actions */}
-      <div className="border-t border-[#F0ECE7] px-6 py-4 sm:px-7">
-        {/* Author */}
+      {/* AUTHOR AND ACTIONS */}
+      <div className="border-t border-[#F97316]/10 bg-[#19110B] px-5 py-4 sm:px-6">
+        {/* AUTHOR */}
         <button
           type="button"
           onClick={handleAuthorClick}
@@ -264,23 +271,23 @@ const ShabdaPost = ({
             <img
               src={profileImage}
               alt={authorName}
-              className="h-9 w-9 shrink-0 rounded-full object-cover"
+              className="h-9 w-9 shrink-0 rounded-full border border-[#F97316]/25 object-cover"
               loading="lazy"
             />
           ) : (
-            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#FCEAED] text-xs font-semibold text-[#E5092D]">
+            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-[#F97316]/25 bg-[#382215] text-xs font-semibold text-[#FDBA74]">
               {getInitials(authorName)}
             </div>
           )}
 
           <div className="min-w-0">
-            <p className="truncate text-[12px] font-semibold text-[#34302E]">
+            <p className="truncate text-[12px] font-semibold text-[#FFF3E8] transition-colors hover:text-[#FB923C]">
               {authorName}
             </p>
 
             <div className="flex items-center gap-2">
               {username && (
-                <span className="truncate text-[10px] text-[#99918B]">
+                <span className="truncate text-[10px] text-[#A9917C]">
                   @{username}
                 </span>
               )}
@@ -288,10 +295,10 @@ const ShabdaPost = ({
               {formatDate(post.createdAt) && (
                 <>
                   {username && (
-                    <span className="text-[9px] text-[#B7AFA8]">·</span>
+                    <span className="text-[9px] text-[#6F5A48]">·</span>
                   )}
 
-                  <span className="shrink-0 text-[10px] text-[#99918B]">
+                  <span className="shrink-0 text-[10px] text-[#A9917C]">
                     {formatDate(post.createdAt)}
                   </span>
                 </>
@@ -300,18 +307,18 @@ const ShabdaPost = ({
           </div>
         </button>
 
-        {/* Actions */}
-        <div className="mt-4 flex items-center justify-between border-t border-[#F0ECE7] pt-3">
+        {/* ACTIONS */}
+        <div className="mt-4 flex items-center justify-between border-t border-[#F97316]/10 pt-3">
           <div className="flex items-center gap-5">
-            {/* Like */}
+            {/* LIKE */}
             <button
               type="button"
               onClick={(event) => handleAction(event, onLike)}
               aria-label={isLiked ? "Unlike post" : "Like post"}
               className={`flex items-center gap-1.5 text-xs transition-colors ${
                 isLiked
-                  ? "text-[#E5092D]"
-                  : "text-[#99918B] hover:text-[#E5092D]"
+                  ? "text-[#FB923C]"
+                  : "text-[#A9917C] hover:text-[#FB923C]"
               }`}
             >
               <Heart
@@ -322,25 +329,25 @@ const ShabdaPost = ({
               <span>{likesCount}</span>
             </button>
 
-            {/* Comments */}
+            {/* COMMENTS */}
             <button
               type="button"
               onClick={(event) => handleAction(event, onComment)}
               aria-label="View comments"
-              className="flex items-center gap-1.5 text-xs text-[#99918B] transition-colors hover:text-[#E5092D]"
+              className="flex items-center gap-1.5 text-xs text-[#A9917C] transition-colors hover:text-[#FB923C]"
             >
               <MessageCircle size={17} strokeWidth={1.7} />
               <span>{commentsCount}</span>
             </button>
           </div>
 
-          {/* Bookmark */}
+          {/* BOOKMARK */}
           <button
             type="button"
             onClick={(event) => handleAction(event, onSave)}
             aria-label={isSaved ? "Remove bookmark" : "Bookmark post"}
             className={`transition-colors ${
-              isSaved ? "text-[#E5092D]" : "text-[#99918B] hover:text-[#E5092D]"
+              isSaved ? "text-[#FB923C]" : "text-[#A9917C] hover:text-[#FB923C]"
             }`}
           >
             <Bookmark

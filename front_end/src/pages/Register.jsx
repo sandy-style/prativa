@@ -96,7 +96,7 @@ const Register = () => {
           </Link>
 
           <div className="absolute bottom-12 left-10 right-10 text-white">
-            <p className="text-sm uppercase tracking-[0.3em] text-[#F0B6A8] mb-4">
+            <p className="text-sm uppercase tracking-[0.3em] text-[#FF4DB8] mb-4">
               Where talent leaves its mark.
             </p>
 
@@ -117,7 +117,7 @@ const Register = () => {
         <div className="flex flex-col justify-center px-7 py-12 sm:px-12 lg:px-16">
           <Link
             to="/"
-            className="flex items-center gap-2 text-sm text-[#77716F] hover:text-[#E5092D] transition mb-10"
+            className="flex items-center gap-2 text-sm text-[#77716F] hover:text-[#E83D98] transition mb-10"
           >
             <ArrowLeft size={16} />
             Back to home
@@ -125,7 +125,7 @@ const Register = () => {
 
           <div className="max-w-md w-full mx-auto">
             <div className="mb-8">
-              <p className="text-[#E5092D] text-xs font-semibold tracking-[0.25em] uppercase mb-3">
+              <p className="text-[#E83D98] text-xs font-semibold tracking-[0.25em] uppercase mb-3">
                 Your journey starts here
               </p>
 
@@ -157,7 +157,7 @@ const Register = () => {
                   autoComplete="name"
                   maxLength={60}
                   required
-                  className="w-full px-4 py-3.5 bg-[#F8F7F4] border border-[#E7E3DD] rounded-lg outline-none focus:border-[#E5092D] focus:ring-1 focus:ring-[#E5092D] transition"
+                  className="w-full px-4 py-3.5 bg-[#F8F7F4] border border-[#E7E3DD] rounded-lg outline-none focus:border-[#FF4DB8] focus:ring-1 focus:ring-[#FF4DB8] transition"
                 />
               </div>
 
@@ -178,7 +178,7 @@ const Register = () => {
                   placeholder="you@example.com"
                   autoComplete="email"
                   required
-                  className="w-full px-4 py-3.5 bg-[#F8F7F4] border border-[#E7E3DD] rounded-lg outline-none focus:border-[#E5092D] focus:ring-1 focus:ring-[#E5092D] transition"
+                  className="w-full px-4 py-3.5 bg-[#F8F7F4] border border-[#E7E3DD] rounded-lg outline-none focus:border-[#FF4DB8] focus:ring-1 focus:ring-[#FF4DB8] transition"
                 />
               </div>
 
@@ -201,13 +201,13 @@ const Register = () => {
                     autoComplete="new-password"
                     minLength={8}
                     required
-                    className="w-full px-4 py-3.5 pr-12 bg-[#F8F7F4] border border-[#E7E3DD] rounded-lg outline-none focus:border-[#E5092D] focus:ring-1 focus:ring-[#E5092D] transition"
+                    className="w-full px-4 py-3.5 pr-12 bg-[#F8F7F4] border border-[#E7E3DD] rounded-lg outline-none focus:border-[#FF4DB8] focus:ring-1 focus:ring-[#FF4DB8] transition"
                   />
 
                   <button
                     type="button"
                     onClick={() => setShowPassword((previous) => !previous)}
-                    className="absolute right-4 top-1/2 -translate-y-1/2 text-[#77716F]"
+                    className="absolute right-4 top-1/2 -translate-y-1/2 text-[#77716F] hover:text-[#E83D98] transition"
                     aria-label={
                       showPassword ? "Hide password" : "Show password"
                     }
@@ -230,7 +230,7 @@ const Register = () => {
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full bg-[#E5092D] hover:bg-[#C90024] disabled:opacity-60 text-white py-3.5 rounded-lg font-medium transition"
+                className="w-full bg-[#FF4DB8] hover:bg-[#E83D98] disabled:opacity-60 text-white py-3.5 rounded-lg font-medium transition"
               >
                 {loading ? "Creating account..." : "Create account"}
               </button>
@@ -260,7 +260,7 @@ const Register = () => {
               Already have an account?{" "}
               <Link
                 to="/login"
-                className="text-[#E5092D] font-semibold hover:underline"
+                className="text-[#E83D98] font-semibold hover:underline"
               >
                 Sign in
               </Link>

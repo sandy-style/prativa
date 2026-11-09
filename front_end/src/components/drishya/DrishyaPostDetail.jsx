@@ -12,6 +12,7 @@ import {
   Trash2,
   LoaderCircle,
   Maximize2,
+  X,
 } from "lucide-react";
 
 const API_URL = import.meta.env.VITE_API_URL;
@@ -57,12 +58,9 @@ const DrishyaPostDetail = ({
 
   const description = post?.description || post?.caption || "";
 
-  // Get the actual user ID from populated or unpopulated references.
   const getUserId = (user) => {
     if (!user) return null;
-
     if (typeof user === "string") return user;
-
     return user._id || user.id || null;
   };
 
@@ -71,10 +69,8 @@ const DrishyaPostDetail = ({
     getUserId(post?.authorProfile?.user) ||
     getUserId(post?.user);
 
-  // Navigate to another creator's profile.
   const openProfile = (userId) => {
     if (!userId) return;
-
     onClose?.();
     navigate(`/profile/${userId}`);
   };
@@ -346,21 +342,14 @@ const DrishyaPostDetail = ({
     <>
       {/* Main post detail modal */}
       <div
-        className="fixed inset-0 z-[100] flex items-center justify-center overflow-y-auto bg-black/75 p-3 backdrop-blur-sm sm:p-6"
+        className="fixed inset-0 z-[100] flex items-center justify-center overflow-y-auto bg-[#020813]/90 p-3 backdrop-blur-md sm:p-6"
         onMouseDown={(event) => {
           if (event.target === event.currentTarget) onClose?.();
         }}
       >
-        <div className="flex w-[min(95vw,560px)] max-w-[95vw] flex-col overflow-hidden rounded-xl bg-[#FAF9F6] shadow-2xl md:w-fit md:max-w-[95vw] md:flex-row md:items-stretch">
+        <div className="relative flex w-[min(95vw,560px)] max-w-[95vw] flex-col overflow-hidden rounded-2xl border border-[#173047] bg-[#071525] shadow-[0_20px_100px_rgba(0,0,0,0.55)] md:w-fit md:max-w-[95vw] md:flex-row md:items-stretch">
           {/* Photograph section */}
-          <div
-            className="
-              flex w-full shrink-0 items-center justify-center
-              overflow-hidden bg-[#171717]
-              md:w-fit md:max-w-[calc(95vw-390px-24px)]
-              lg:max-w-[calc(95vw-420px-24px)]
-            "
-          >
+          <div className="flex w-full shrink-0 items-center justify-center overflow-hidden bg-[#030B16] md:w-fit md:max-w-[calc(95vw-390px-24px)] lg:max-w-[calc(95vw-420px-24px)]">
             {image ? (
               <button
                 type="button"
@@ -371,32 +360,25 @@ const DrishyaPostDetail = ({
                 <img
                   src={image}
                   alt={post.title || "Photograph"}
-                  className="
-                    mx-auto block h-auto w-auto
-                    max-h-[45vh] max-w-full
-                    object-contain
-                    md:mx-0 md:max-h-[88vh]
-                    md:max-w-[calc(95vw-390px-24px)]
-                    lg:max-w-[calc(95vw-420px-24px)]
-                  "
+                  className="mx-auto block h-auto w-auto max-h-[45vh] max-w-full object-contain md:mx-0 md:max-h-[88vh] md:max-w-[calc(95vw-390px-24px)] lg:max-w-[calc(95vw-420px-24px)]"
                 />
 
-                <span className="absolute bottom-4 left-1/2 flex -translate-x-1/2 items-center gap-2 whitespace-nowrap rounded-full bg-black/65 px-4 py-2 text-xs text-white opacity-0 backdrop-blur-sm transition group-hover:opacity-100">
-                  <Maximize2 size={15} />
+                <span className="absolute bottom-4 left-1/2 flex -translate-x-1/2 items-center gap-2 whitespace-nowrap rounded-full border border-white/10 bg-[#071525]/85 px-4 py-2 text-xs text-white opacity-0 backdrop-blur-md transition group-hover:opacity-100">
+                  <Maximize2 size={15} className="text-[#00D4FF]" />
                   View full image
                 </span>
               </button>
             ) : (
               <div className="flex min-h-[240px] w-full items-center justify-center">
-                <p className="text-sm text-white/60">Photograph unavailable</p>
+                <p className="text-sm text-slate-500">Photograph unavailable</p>
               </div>
             )}
           </div>
 
           {/* Details panel */}
-          <div className="flex min-h-0 w-full shrink-0 flex-col bg-[#FAF9F6] md:w-[390px] md:max-h-[88vh] lg:w-[420px]">
+          <div className="flex min-h-0 w-full shrink-0 flex-col bg-[#071525] md:w-[390px] md:max-h-[88vh] lg:w-[420px]">
             {/* Creator header */}
-            <div className="flex shrink-0 items-center justify-between border-b border-[#EAE6E0] px-5 py-4">
+            <div className="flex shrink-0 items-center justify-between border-b border-[#173047] px-5 py-4">
               <div className="flex min-w-0 items-center gap-3">
                 <button
                   type="button"
@@ -408,7 +390,7 @@ const DrishyaPostDetail = ({
                   <img
                     src={profileImage}
                     alt={authorName}
-                    className="h-11 w-11 rounded-full object-cover transition hover:opacity-80"
+                    className="h-11 w-11 rounded-full border border-[#00D4FF]/30 object-cover transition hover:border-[#00D4FF]"
                     onError={(event) => {
                       event.currentTarget.src = FALLBACK_AVATAR;
                     }}
@@ -420,7 +402,7 @@ const DrishyaPostDetail = ({
                     type="button"
                     onClick={() => openProfile(authorId)}
                     disabled={!authorId}
-                    className="block max-w-full truncate text-left text-sm font-semibold text-[#191919] transition hover:text-[#E5092D] disabled:cursor-default"
+                    className="block max-w-full truncate text-left text-sm font-semibold text-white transition hover:text-[#00D4FF] disabled:cursor-default"
                   >
                     {authorName}
                   </button>
@@ -429,7 +411,7 @@ const DrishyaPostDetail = ({
                     type="button"
                     onClick={() => openProfile(authorId)}
                     disabled={!authorId}
-                    className="block truncate text-xs text-[#99918B] transition hover:text-[#E5092D] disabled:cursor-default"
+                    className="block truncate text-xs text-slate-500 transition hover:text-[#00D4FF] disabled:cursor-default"
                   >
                     @{username}
                   </button>
@@ -440,19 +422,19 @@ const DrishyaPostDetail = ({
                 <button
                   type="button"
                   onClick={() => setMenuOpen((previous) => !previous)}
-                  className="flex h-9 w-9 items-center justify-center rounded-full text-[#77716F] transition hover:bg-[#F0EDE8]"
+                  className="flex h-9 w-9 items-center justify-center rounded-full text-slate-400 transition hover:bg-[#102438] hover:text-[#00D4FF]"
                   aria-label="Post options"
                 >
                   <MoreHorizontal size={22} />
                 </button>
 
                 {menuOpen && (
-                  <div className="absolute right-0 top-11 z-20 w-48 overflow-hidden rounded-xl border border-[#EAE6E0] bg-white py-1 shadow-xl">
+                  <div className="absolute right-0 top-11 z-20 w-48 overflow-hidden rounded-xl border border-[#1C3B53] bg-[#0B1D30] py-1 shadow-2xl">
                     <button
                       type="button"
                       onClick={handleDownload}
                       disabled={downloading}
-                      className="flex w-full items-center gap-3 px-4 py-3 text-left text-sm text-[#514C48] transition hover:bg-[#F7F5F1]"
+                      className="flex w-full items-center gap-3 px-4 py-3 text-left text-sm text-slate-300 transition hover:bg-[#102B40] hover:text-[#00D4FF]"
                     >
                       {downloading ? (
                         <LoaderCircle size={17} className="animate-spin" />
@@ -465,7 +447,7 @@ const DrishyaPostDetail = ({
                     <button
                       type="button"
                       onClick={handleShare}
-                      className="flex w-full items-center gap-3 px-4 py-3 text-left text-sm text-[#514C48] transition hover:bg-[#F7F5F1]"
+                      className="flex w-full items-center gap-3 px-4 py-3 text-left text-sm text-slate-300 transition hover:bg-[#102B40] hover:text-[#00D4FF]"
                     >
                       <Share2 size={17} />
                       Share photograph
@@ -476,15 +458,13 @@ const DrishyaPostDetail = ({
             </div>
 
             {/* Title and description */}
-            <div className="shrink-0 border-b border-[#EAE6E0] px-5 py-5">
+            <div className="shrink-0 border-b border-[#173047] px-5 py-5">
               {post.title && (
-                <h2 className="font-serif text-2xl text-[#191919]">
-                  {post.title}
-                </h2>
+                <h2 className="font-serif text-2xl text-white">{post.title}</h2>
               )}
 
               {description && (
-                <p className="mt-2 whitespace-pre-line text-sm leading-7 text-[#625B55]">
+                <p className="mt-2 whitespace-pre-line text-sm leading-7 text-slate-400">
                   {description}
                 </p>
               )}
@@ -494,7 +474,7 @@ const DrishyaPostDetail = ({
                   {post.tags.map((tag) => (
                     <span
                       key={tag}
-                      className="rounded-full bg-[#F0EDE8] px-3 py-1 text-xs text-[#77716F]"
+                      className="rounded-full border border-[#00D4FF]/15 bg-[#00D4FF]/[0.06] px-3 py-1 text-xs text-[#72DDF2]"
                     >
                       #{tag}
                     </span>
@@ -504,34 +484,35 @@ const DrishyaPostDetail = ({
             </div>
 
             {/* Comments */}
-            <div className="min-h-[160px] flex-1 overflow-y-auto px-5 py-4 md:min-h-0">
+            <div className="min-h-[160px] flex-1 overflow-y-auto px-5 py-4">
               <div className="mb-4 flex items-center justify-between">
-                <h3 className="font-serif text-xl text-[#191919]">
-                  Conversation
-                </h3>
+                <h3 className="font-serif text-xl text-white">Conversation</h3>
 
-                <span className="text-xs text-[#99918B]">
+                <span className="text-xs text-slate-500">
                   {comments.length} comments
                 </span>
               </div>
 
               {loadingComments ? (
-                <div className="flex items-center justify-center gap-2 py-10 text-sm text-[#99918B]">
-                  <LoaderCircle size={17} className="animate-spin" />
+                <div className="flex items-center justify-center gap-2 py-10 text-sm text-slate-500">
+                  <LoaderCircle
+                    size={17}
+                    className="animate-spin text-[#00D4FF]"
+                  />
                   Loading comments...
                 </div>
               ) : comments.length === 0 ? (
                 <div className="py-10 text-center">
                   <MessageCircle
                     size={27}
-                    className="mx-auto mb-3 text-[#C6BDB4]"
+                    className="mx-auto mb-3 text-[#31536A]"
                   />
 
-                  <p className="font-serif text-lg text-[#514C48]">
+                  <p className="font-serif text-lg text-slate-300">
                     Start the conversation.
                   </p>
 
-                  <p className="mt-1 text-xs text-[#99918B]">
+                  <p className="mt-1 text-xs text-slate-500">
                     Be the first to leave a thought.
                   </p>
                 </div>
@@ -561,7 +542,7 @@ const DrishyaPostDetail = ({
                           <img
                             src={commentAvatar}
                             alt={commentName}
-                            className="h-9 w-9 rounded-full object-cover transition hover:opacity-80"
+                            className="h-9 w-9 rounded-full border border-[#173047] object-cover transition hover:border-[#00D4FF]"
                             onError={(event) => {
                               event.currentTarget.src = FALLBACK_AVATAR;
                             }}
@@ -575,7 +556,7 @@ const DrishyaPostDetail = ({
                                 type="button"
                                 onClick={() => openProfile(commentUserId)}
                                 disabled={!commentUserId}
-                                className="truncate text-sm font-semibold text-[#292521] transition hover:text-[#E5092D] disabled:cursor-default"
+                                className="truncate text-sm font-semibold text-slate-200 transition hover:text-[#00D4FF] disabled:cursor-default"
                               >
                                 {commentName}
                               </button>
@@ -585,7 +566,7 @@ const DrishyaPostDetail = ({
                                   type="button"
                                   onClick={() => openProfile(commentUserId)}
                                   disabled={!commentUserId}
-                                  className="ml-2 text-xs text-[#99918B] transition hover:text-[#E5092D] disabled:cursor-default"
+                                  className="ml-2 text-xs text-slate-500 transition hover:text-[#00D4FF] disabled:cursor-default"
                                 >
                                   @{comment.userProfile.username}
                                 </button>
@@ -596,7 +577,7 @@ const DrishyaPostDetail = ({
                               <button
                                 type="button"
                                 onClick={() => handleDeleteComment(comment._id)}
-                                className="shrink-0 text-[#AAA19A] transition hover:text-[#E5092D]"
+                                className="shrink-0 text-slate-600 transition hover:text-red-400"
                                 aria-label="Delete comment"
                               >
                                 <Trash2 size={15} />
@@ -604,11 +585,11 @@ const DrishyaPostDetail = ({
                             )}
                           </div>
 
-                          <p className="mt-1 whitespace-pre-line break-words text-sm leading-6 text-[#625B55]">
+                          <p className="mt-1 whitespace-pre-line break-words text-sm leading-6 text-slate-400">
                             {comment.content}
                           </p>
 
-                          <p className="mt-1 text-[10px] text-[#AAA19A]">
+                          <p className="mt-1 text-[10px] text-slate-600">
                             {comment.createdAt
                               ? new Date(comment.createdAt).toLocaleDateString()
                               : ""}
@@ -622,9 +603,9 @@ const DrishyaPostDetail = ({
             </div>
 
             {/* Actions and comment form */}
-            <div className="shrink-0 border-t border-[#EAE6E0] bg-white px-5 py-4">
+            <div className="shrink-0 border-t border-[#173047] bg-[#061321] px-5 py-4">
               {message && (
-                <div className="mb-3 rounded-lg bg-[#FFF0F0] px-3 py-2 text-xs text-[#B4233D]">
+                <div className="mb-3 rounded-lg border border-red-500/20 bg-red-500/[0.08] px-3 py-2 text-xs text-red-300">
                   {message}
                 </div>
               )}
@@ -637,8 +618,8 @@ const DrishyaPostDetail = ({
                     disabled={liking}
                     className={`flex items-center gap-2 transition ${
                       liked
-                        ? "text-[#E5092D]"
-                        : "text-[#514C48] hover:text-[#E5092D]"
+                        ? "text-[#00D4FF]"
+                        : "text-slate-400 hover:text-[#00D4FF]"
                     }`}
                     aria-label={liked ? "Unlike post" : "Like post"}
                   >
@@ -649,7 +630,7 @@ const DrishyaPostDetail = ({
                   <button
                     type="button"
                     onClick={handleCommentClick}
-                    className="flex items-center gap-2 text-[#514C48] transition hover:text-[#E5092D]"
+                    className="flex items-center gap-2 text-slate-400 transition hover:text-[#00D4FF]"
                     aria-label="Write a comment"
                   >
                     <MessageCircle size={22} />
@@ -663,8 +644,8 @@ const DrishyaPostDetail = ({
                   disabled={saving}
                   className={`transition ${
                     saved
-                      ? "text-[#E5092D]"
-                      : "text-[#514C48] hover:text-[#E5092D]"
+                      ? "text-[#00D4FF]"
+                      : "text-slate-400 hover:text-[#00D4FF]"
                   }`}
                   aria-label={saved ? "Remove saved post" : "Save post"}
                 >
@@ -680,13 +661,13 @@ const DrishyaPostDetail = ({
                   onChange={(event) => setCommentText(event.target.value)}
                   placeholder="Leave a thought..."
                   maxLength={1000}
-                  className="min-w-0 flex-1 rounded-full border border-[#EAE6E0] bg-[#FAF9F6] px-4 py-3 text-sm text-[#292521] outline-none transition placeholder:text-[#AAA19A] focus:border-[#C9A69E]"
+                  className="min-w-0 flex-1 rounded-full border border-[#1C3B53] bg-[#0B1D30] px-4 py-3 text-sm text-white outline-none transition placeholder:text-slate-600 focus:border-[#00D4FF]/60 focus:ring-1 focus:ring-[#00D4FF]/20"
                 />
 
                 <button
                   type="submit"
                   disabled={!commentText.trim() || sendingComment}
-                  className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-[#E5092D] text-white transition hover:bg-[#C90024] disabled:cursor-not-allowed disabled:opacity-40"
+                  className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-[#00D4FF] text-[#03111D] transition hover:bg-[#67E5F7] disabled:cursor-not-allowed disabled:opacity-40"
                   aria-label="Send comment"
                 >
                   {sendingComment ? (
@@ -704,13 +685,22 @@ const DrishyaPostDetail = ({
       {/* Individual full-screen image viewer */}
       {imageViewerOpen && image && (
         <div
-          className="fixed inset-0 z-[120] flex items-center justify-center bg-black/95 p-3 sm:p-8"
+          className="fixed inset-0 z-[120] flex items-center justify-center bg-[#020813]/[0.98] p-3 sm:p-8"
           onMouseDown={(event) => {
             if (event.target === event.currentTarget) {
               setImageViewerOpen(false);
             }
           }}
         >
+          <button
+            type="button"
+            onClick={() => setImageViewerOpen(false)}
+            className="absolute right-5 top-5 z-10 flex h-11 w-11 items-center justify-center rounded-full border border-white/10 bg-[#0B1D30] text-white transition hover:border-[#00D4FF]/50 hover:text-[#00D4FF]"
+            aria-label="Close image viewer"
+          >
+            <X size={21} />
+          </button>
+
           <img
             src={image}
             alt={post.title || "Full photograph"}

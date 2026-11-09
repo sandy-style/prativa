@@ -1,7 +1,7 @@
 import React from "react";
 import { Routes, Route } from "react-router-dom";
 
-// Layout
+// Layouts
 import MainLayout from "./components/MainLayout";
 import ManchLayout from "./components/ManchLayout";
 
@@ -18,9 +18,6 @@ import VerifyEmail from "./pages/VerifyEmail";
 import ForgotPassword from "./pages/ForgotPassword";
 import ResetPassword from "./pages/ResetPassword";
 
-// Components
-import CreateProfile from "./components/CreateProfile";
-
 // Manch pages
 import DrishyaManch from "./pages/DrishyaManch";
 import SwarManch from "./pages/SwarManch";
@@ -33,7 +30,7 @@ import Profile from "./pages/Profile";
 const App = () => {
   return (
     <Routes>
-      {/* Main website */}
+      {/* Main website - Shared Navbar */}
       <Route element={<MainLayout />}>
         <Route path="/" element={<Home />} />
         <Route path="/about" element={<About />} />
@@ -41,7 +38,7 @@ const App = () => {
         <Route path="/contact" element={<Contact />} />
       </Route>
 
-      {/* Manch pages */}
+      {/* Manch pages - Separate layout */}
       <Route element={<ManchLayout />}>
         <Route path="/explore/swar-manch" element={<SwarManch />} />
         <Route path="/explore/drishya-manch" element={<DrishyaManch />} />

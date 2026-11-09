@@ -1,538 +1,569 @@
-import { Link } from "react-router-dom";
-import { ArrowRight, Camera, Users, Sparkles, Heart } from "lucide-react";
+import React from "react";
 import { motion } from "framer-motion";
+import { Link } from "react-router-dom";
+import {
+  ArrowDown,
+  ArrowRight,
+  ArrowUpRight,
+  Camera,
+  Music2,
+  Feather,
+  Palette,
+  Sparkles,
+  Orbit,
+  Stars,
+} from "lucide-react";
 
 import heroImage from "../assets/hero.png";
-import sectionImage from "../assets/section.png";
 
-// ================= ANIMATION VARIANTS =================
+const ease = [0.16, 1, 0.3, 1];
 
-const fadeInUp = {
-  hidden: { opacity: 0, y: 28 },
-  visible: {
-    opacity: 1,
-    y: 0,
-    transition: { duration: 0.7, ease: [0.22, 1, 0.36, 1] },
-  },
-};
-
-const staggerContainer = {
-  hidden: { opacity: 0 },
-  visible: {
-    opacity: 1,
-    transition: {
-      staggerChildren: 0.12,
-      delayChildren: 0.1,
-    },
-  },
-};
-
-// ================= PAINT DECORATION =================
-
-const PaintSplash = ({
-  className = "",
-  variant = 1,
-  float = false,
-  floatDuration = 7,
-}) => {
-  const paths = [
-    <>
-      <path d="M15 155 C115 75 205 185 310 92 S480 30 575 65" />
-      <path d="M5 180 C115 110 195 205 320 125 S470 65 590 95" />
-      <path d="M35 205 C145 140 210 220 330 150" />
-    </>,
-    <>
-      <path d="M15 100 C120 150 170 20 285 90 S440 175 575 65" />
-      <path d="M20 130 C120 180 180 55 295 115 S450 200 590 95" />
-      <path d="M65 160 C160 205 210 105 330 145" />
-    </>,
-  ];
-
-  return (
-    <motion.svg
-      viewBox="0 0 600 240"
-      fill="none"
-      className={`pointer-events-none absolute ${className}`}
-      aria-hidden="true"
-      {...(float
-        ? {
-            animate: {
-              y: [-6, 6, -6],
-              rotate: [-2, 2, -2],
-            },
-            transition: {
-              duration: floatDuration,
-              repeat: Infinity,
-              ease: "easeInOut",
-            },
-          }
-        : {})}
-    >
-      <g
-        stroke="#FF1744"
-        strokeWidth="3"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        opacity=".9"
-      >
-        {paths[(variant - 1) % 2]}
-      </g>
-
-      <g fill="#FF1744">
-        <circle cx="75" cy="45" r="5" />
-        <circle cx="115" cy="28" r="2.5" />
-        <circle cx="175" cy="210" r="4" />
-        <circle cx="225" cy="35" r="3" />
-        <circle cx="400" cy="205" r="5" />
-        <circle cx="455" cy="25" r="2.5" />
-        <circle cx="525" cy="175" r="4" />
-        <circle cx="560" cy="145" r="2" />
-      </g>
-    </motion.svg>
-  );
-};
-
-// ================= FEATURES =================
-
-const features = [
+const worlds = [
   {
+    number: "01",
+    name: "Photography",
+    category: "CAPTURE THE MOMENT",
+    subtitle: "Capture the unseen.",
+    description:
+      "Every photograph holds a story. Share your perspective, preserve moments, and let the world see through your eyes.",
     icon: Camera,
-    title: "Showcase Talent",
+    accent: "#FF4DB8",
+    glow: "rgba(255, 77, 184, 0.18)",
+  },
+  {
+    number: "02",
+    name: "Music & Singing",
+    category: "FEEL THE RHYTHM",
+    subtitle: "Let your melody speak.",
     description:
-      "Share your photographs, artwork, and creativity with the world.",
+      "From soulful voices to beautiful compositions, give your music a place to be heard and appreciated.",
+    icon: Music2,
+    accent: "#FF789A",
+    glow: "rgba(255, 120, 154, 0.16)",
   },
   {
-    icon: Users,
-    title: "Discover Creators",
-    description: "Find extraordinary artists, photographers, and storytellers.",
-  },
-  {
-    icon: Sparkles,
-    title: "Get Inspired",
+    number: "03",
+    name: "Poetry & Writing",
+    category: "EXPRESS THROUGH WORDS",
+    subtitle: "Words have their own world.",
     description:
-      "Explore fresh ideas, creative journeys, and new perspectives.",
+      "Poetry, stories, shayari, and thoughts. Turn the words within you into something the world can feel.",
+    icon: Feather,
+    accent: "#FF91C8",
+    glow: "rgba(255, 145, 200, 0.18)",
   },
   {
-    icon: Heart,
-    title: "Be Part of Prativa",
-    description: "Join a community that celebrates creativity in every form.",
+    number: "04",
+    name: "Painting & Art",
+    category: "CREATE YOUR REALITY",
+    subtitle: "Paint beyond imagination.",
+    description:
+      "A home for artists and dreamers. Bring your imagination to life and let your artwork find its audience.",
+    icon: Palette,
+    accent: "#FF4DB8",
+    glow: "rgba(255, 77, 184, 0.15)",
   },
 ];
 
-// ================= HOME PAGE =================
+const fadeUp = {
+  hidden: { opacity: 0, y: 30 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: { duration: 0.8, ease },
+  },
+};
 
-const Home = () => {
+const stagger = {
+  hidden: {},
+  visible: {
+    transition: { staggerChildren: 0.12 },
+  },
+};
+
+function SectionLabel({ children }) {
   return (
-    <main className="min-h-screen overflow-hidden bg-[#F8F7F4] text-[#191919]">
-      {/* ================= HERO SECTION ================= */}
+    <div className="mb-6 flex items-center gap-3 font-orbitron text-[10px] font-semibold uppercase tracking-[0.32em] text-[#FF4DB8]">
+      <span className="h-px w-9 bg-gradient-to-r from-[#FF4DB8] to-[#FF91C8]" />
+      {children}
+    </div>
+  );
+}
 
-      <section className="relative isolate flex min-h-screen items-center overflow-hidden">
-        {/* Cinematic hero background entry */}
-        <motion.img
-          src={heroImage}
-          alt="Prativa artistic creative collage"
-          fetchPriority="high"
-          initial={{ scale: 1.08, opacity: 0 }}
-          animate={{ scale: 1, opacity: 1 }}
-          transition={{ duration: 1.4, ease: [0.16, 1, 0.3, 1] }}
-          className="absolute inset-0 -z-20 h-full w-full object-cover object-[62%_center] md:object-center"
-        />
+export default function Home() {
+  return (
+    <main className="overflow-hidden bg-[#050A30] font-sans text-[#F5F7FF]">
+      {/* ========================================================= */}
+      {/* 01. HERO SECTION                                          */}
+      {/* ========================================================= */}
+      <section className="relative flex min-h-screen items-center overflow-hidden bg-[#050A30]">
+        <div className="absolute inset-0 overflow-hidden">
+          <motion.img
+            src={heroImage}
+            alt="Hero background"
+            initial={{ scale: 1.15, opacity: 0, filter: "blur(8px)" }}
+            animate={{ scale: 1, opacity: 1, filter: "blur(0px)" }}
+            transition={{ duration: 1.6, ease }}
+            className="h-full w-full object-cover object-center will-change-transform"
+          />
 
-        {/* Soft overlay */}
+          <div className="absolute inset-0 bg-gradient-to-r from-[#050A30]/95 via-[#050A30]/70 to-[#050A30]/15" />
+          <div className="absolute inset-0 bg-gradient-to-t from-[#050A30] via-transparent to-[#050A30]/25" />
+        </div>
+
+        {/* Subtle atmosphere lights */}
+        <div className="pointer-events-none absolute -left-40 top-1/4 h-[400px] w-[400px] rounded-full bg-[#FF4DB8]/15 blur-[130px]" />
+
+        {/* Orbit decoration */}
         <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 1 }}
-          className="absolute inset-0 -z-10 bg-gradient-to-r from-[#F8F7F4] via-[#F8F7F4]/90 to-transparent md:via-[#F8F7F4]/70"
-        />
+          animate={{ rotate: 360 }}
+          transition={{ duration: 80, repeat: Infinity, ease: "linear" }}
+          className="pointer-events-none absolute right-[12%] top-[22%] hidden text-[#FF4DB8]/20 lg:block"
+        >
+          <Orbit size={150} strokeWidth={0.5} />
+        </motion.div>
 
-        <div className="mx-auto w-full max-w-[1440px] px-6 pb-20 pt-32 sm:px-10 lg:px-14">
+        {/* Hero content */}
+        <div className="relative z-10 mx-auto w-full max-w-[1800px] px-6 pb-24 pt-36 sm:px-10 lg:px-16 xl:px-20">
           <motion.div
-            variants={staggerContainer}
             initial="hidden"
             animate="visible"
-            className="max-w-[620px]"
+            variants={stagger}
+            className="max-w-[780px]"
           >
-            {/* Brand introduction */}
-            <motion.div
-              variants={fadeInUp}
-              className="mb-8 flex items-center gap-3 text-[11px] font-medium uppercase tracking-[0.22em] text-[#77716F]"
-            >
-              <span className="h-[1px] w-9 bg-[#FF1744]" />
-              Voice <span className="text-[#FF1744]">/</span>
-              Vision <span className="text-[#FF1744]">/</span>
-              Art <span className="text-[#FF1744]">/</span>
-              Words
+            <motion.div variants={fadeUp}>
+              <div className="mb-8 inline-flex items-center gap-3 rounded-full border border-[#FF4DB8]/25 bg-[#FF4DB8]/[0.07] px-5 py-2.5 backdrop-blur-md">
+                <Sparkles size={14} className="text-[#FF4DB8]" />
+                <span className="font-orbitron text-[10px] font-semibold uppercase tracking-[0.2em] text-[#C8D8FF]">
+                  A Universe of Creativity
+                </span>
+              </div>
             </motion.div>
 
-            {/* Brand name */}
-            <motion.h1
-              variants={fadeInUp}
-              className="font-serif text-[76px] font-semibold leading-[0.95] tracking-[-4px] text-[#191919] sm:text-[100px] lg:text-[120px]"
+            <motion.p
+              variants={fadeUp}
+              className="mb-2 font-orbitron text-xs font-medium uppercase tracking-[0.35em] text-[#FF4DB8] sm:text-sm"
             >
-              PRATIVA
+              Where creativity comes alive
+            </motion.p>
+
+            <motion.h1
+              variants={fadeUp}
+              className="font-orbitron text-[clamp(4rem,12vw,10rem)] font-bold leading-[0.95] tracking-[-0.07em] text-white"
+            >
+              Prativa
+              <span className="text-[#FF4DB8]">.</span>
             </motion.h1>
 
-            {/* Brand tagline */}
-            <motion.p
-              variants={fadeInUp}
-              className="mt-4 text-[11px] font-medium uppercase tracking-[0.2em] text-[#E5092D]"
-            >
-              Where talent leaves its mark.
-            </motion.p>
-
-            {/* Main heading */}
             <motion.h2
-              variants={fadeInUp}
-              className="mt-9 max-w-[570px] font-serif text-[37px] leading-[1.12] tracking-[-1.5px] text-[#202020] sm:text-[47px] lg:text-[55px]"
+              variants={fadeUp}
+              className="mt-9 max-w-[750px] font-orbitron text-2xl font-medium leading-[1.4] tracking-tight sm:text-3xl lg:text-[45px]"
             >
-              A space for your{" "}
-              <span className="block italic text-[#E5092D]">
-                voice, vision, art,
+              Your talent deserves
+              <span className="block bg-gradient-to-r from-[#FF4DB8] via-[#FF91C8] to-[#FF789A] bg-clip-text italic text-transparent">
+                its own universe.
               </span>
-              and words.
             </motion.h2>
 
-            {/* Description */}
             <motion.p
-              variants={fadeInUp}
-              className="mt-7 max-w-[440px] text-[15px] leading-[1.9] text-[#514C48] sm:text-base"
+              variants={fadeUp}
+              className="mt-7 max-w-[490px] text-sm leading-8 text-[#C2C9E0] sm:text-base font-light"
             >
-              From melodies and photographs to poetry and paintings, bring your
-              creativity into a space where every expression has room to be
-              seen, heard, and appreciated.
+              A creative universe for photographers, musicians, writers,
+              painters, and dreamers. Share what you create, discover
+              extraordinary talent, and let your creativity shine.
             </motion.p>
 
-            {/* Actions */}
-            <motion.div variants={fadeInUp} className="mt-12 flex items-center">
-              <motion.div
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.97 }}
-                transition={{ type: "spring", stiffness: 400, damping: 17 }}
+            {/* Buttons */}
+            <motion.div
+              variants={fadeUp}
+              className="mt-10 flex flex-wrap items-center gap-5"
+            >
+              <Link
+                to="/explore"
+                className="group inline-flex items-center gap-4 rounded-full bg-gradient-to-r from-[#FF4DB8] to-[#FF789A] px-8 py-4 font-orbitron text-xs font-bold text-white shadow-[0_0_30px_rgba(255,77,184,0.2)] transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_0_40px_rgba(255,77,184,0.4)]"
               >
-                <Link
-                  to="/explore"
-                  className="group relative inline-flex items-center justify-center px-12 py-7 text-white"
-                >
-                  <svg
-                    viewBox="0 0 320 100"
-                    preserveAspectRatio="none"
-                    className="absolute -inset-[5%] h-[110%] w-[110%] overflow-visible transition-transform duration-300 group-hover:scale-105"
+                Explore PRATIVA
+                <ArrowUpRight
+                  size={18}
+                  className="transition-transform group-hover:translate-x-1 group-hover:-translate-y-1"
+                />
+              </Link>
+
+              <Link
+                to="/register"
+                className="group inline-flex items-center gap-3 rounded-full border border-white/25 bg-white/[0.04] px-8 py-4 font-orbitron text-xs font-medium text-white backdrop-blur-md transition-all hover:border-[#FF4DB8]/60 hover:bg-[#FF4DB8]/10"
+              >
+                Showcase Your Talent
+                <ArrowRight
+                  size={17}
+                  className="text-[#FF4DB8] transition-transform group-hover:translate-x-1"
+                />
+              </Link>
+            </motion.div>
+
+            {/* Category indicators */}
+            <motion.div
+              variants={fadeUp}
+              className="mt-16 flex flex-wrap items-center gap-x-7 gap-y-4 border-t border-white/10 pt-7"
+            >
+              {[
+                { icon: Camera, name: "Photography" },
+                { icon: Music2, name: "Music" },
+                { icon: Feather, name: "Poetry" },
+                { icon: Palette, name: "Art" },
+              ].map((item) => {
+                const Icon = item.icon;
+                return (
+                  <div
+                    key={item.name}
+                    className="flex items-center gap-2.5 text-xs text-[#B4BCD8]"
                   >
-                    <g transform="rotate(-3 160 50)">
-                      {/* Main irregular brush stroke */}
-                      <path
-                        d="M12 27
-               C35 17 57 23 83 17
-               C122 10 151 19 190 13
-               C230 10 273 16 305 25
-               L296 38
-               C309 45 301 54 289 60
-               L306 76
-               C269 83 236 75 199 84
-               C157 91 119 80 83 87
-               C52 92 26 83 10 78
-               C18 65 4 57 13 47
-               C4 39 6 33 12 27Z"
-                        fill="#E5092D"
-                      />
-
-                      {/* Dry brush edges */}
-                      <path
-                        d="M19 24 C66 14 105 22 148 16 S246 17 292 24"
-                        fill="none"
-                        stroke="#FF5269"
-                        strokeWidth="2.5"
-                        strokeLinecap="round"
-                        opacity="0.65"
-                      />
-
-                      <path
-                        d="M20 81 C64 88 106 78 151 85 S245 77 292 73"
-                        fill="none"
-                        stroke="#A90020"
-                        strokeWidth="2.5"
-                        strokeLinecap="round"
-                        opacity="0.5"
-                      />
-
-                      {/* Fine brush streaks */}
-                      <path
-                        d="M30 18 L65 15 M255 19 L287 23 M28 85 L58 89 M270 78 L300 73"
-                        fill="none"
-                        stroke="#E5092D"
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                      />
-                    </g>
-                  </svg>
-
-                  <span className="relative z-10 whitespace-nowrap text-[15px] font-semibold tracking-wide">
-                    Find Your Stage
-                  </span>
-                </Link>
-              </motion.div>
+                    <Icon size={15} className="text-[#FF4DB8]" />
+                    {item.name}
+                  </div>
+                );
+              })}
             </motion.div>
           </motion.div>
         </div>
 
-        {/* Expanding bottom accent line */}
-        <motion.div
-          initial={{ scaleX: 0 }}
-          animate={{ scaleX: 1 }}
-          transition={{ duration: 1.2, ease: "easeOut", delay: 0.4 }}
-          style={{ originX: 0 }}
-          className="absolute bottom-0 left-0 h-[3px] w-full bg-gradient-to-r from-[#FF1744] via-[#FF1744]/30 to-transparent"
-        />
-      </section>
-
-      {/* ================= FEATURES SECTION ================= */}
-
-      <section className="relative isolate overflow-hidden border-b border-black/[0.07] bg-[#F8F7F4] px-6 py-14 sm:px-10 lg:px-14 lg:py-16">
-        <PaintSplash
-          variant={1}
-          float
-          floatDuration={8}
-          className="-left-24 top-[-65px] w-[360px] -rotate-12 opacity-[0.12]"
-        />
-
-        <PaintSplash
-          variant={2}
-          float
-          floatDuration={9}
-          className="-right-28 bottom-[-100px] w-[420px] rotate-12 opacity-[0.13]"
-        />
-
-        <motion.div
-          variants={staggerContainer}
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true, amount: 0.2 }}
-          className="relative mx-auto grid max-w-[1350px] grid-cols-1 sm:grid-cols-2 lg:grid-cols-4"
-        >
-          {features.map((feature, index) => {
-            const Icon = feature.icon;
-
-            return (
-              <motion.div
-                key={feature.title}
-                variants={fadeInUp}
-                whileHover={{ y: -6 }}
-                transition={{ duration: 0.3 }}
-                className={`group relative flex flex-col items-center px-6 py-7 text-center transition-shadow lg:py-3 ${
-                  index !== 3 ? "lg:border-r lg:border-black/15" : ""
-                }`}
-              >
-                <PaintSplash
-                  variant={(index % 2) + 1}
-                  className="-top-5 left-1/2 w-[125px] -translate-x-1/2 opacity-0 transition-all duration-300 group-hover:scale-110 group-hover:opacity-30"
-                />
-
-                <motion.div
-                  whileHover={{ rotate: [0, -8, 8, 0] }}
-                  transition={{ duration: 0.4 }}
-                  className="relative mb-5 flex h-12 w-12 items-center justify-center"
-                >
-                  <div className="absolute inset-0 rounded-full bg-[#FF1744]/0 transition-colors duration-300 group-hover:bg-[#FF1744]/10" />
-
-                  <Icon
-                    size={30}
-                    strokeWidth={1.35}
-                    className="relative transition-colors duration-300 group-hover:text-[#FF1744]"
-                  />
-                </motion.div>
-
-                <h3 className="font-serif text-[21px] tracking-tight">
-                  {feature.title}
-                </h3>
-
-                <p className="mt-2 max-w-[230px] text-[13px] leading-6 text-[#77716F]">
-                  {feature.description}
-                </p>
-              </motion.div>
-            );
-          })}
-        </motion.div>
-      </section>
-
-      {/* ================= CREATIVE COLLECTIVE ================= */}
-
-      <section className="relative isolate flex min-h-[590px] items-center overflow-hidden lg:min-h-[650px]">
-        <motion.img
-          src={sectionImage}
-          alt="Creative photography collage with camera and sketchbook"
-          loading="lazy"
-          initial={{ scale: 1.06 }}
-          whileInView={{ scale: 1 }}
-          viewport={{ once: true }}
-          transition={{ duration: 1.2, ease: "easeOut" }}
-          className="absolute inset-0 -z-20 h-full w-full object-cover object-center"
-        />
-
-        <div className="absolute inset-0 -z-10 bg-gradient-to-r from-[#F8F7F4] via-[#F8F7F4]/90 to-transparent md:via-[#F8F7F4]/65" />
-
-        <PaintSplash
-          variant={2}
-          float
-          floatDuration={8}
-          className="-right-24 top-4 w-[420px] rotate-12 opacity-40"
-        />
-
-        <PaintSplash
-          variant={1}
-          float
-          floatDuration={10}
-          className="-bottom-20 right-10 w-[370px] -rotate-12 opacity-35"
-        />
-
-        <div className="relative mx-auto w-full max-w-[1440px] px-6 py-24 sm:px-10 lg:px-14">
+        {/* Scroll indicator */}
+        <div className="absolute bottom-8 left-1/2 hidden -translate-x-1/2 flex-col items-center gap-3 font-orbitron text-[9px] uppercase tracking-[0.3em] text-[#AAB3D0] md:flex">
+          Discover the universe
           <motion.div
-            variants={staggerContainer}
+            animate={{ y: [0, 8, 0] }}
+            transition={{ duration: 1.8, repeat: Infinity }}
+          >
+            <ArrowDown size={17} className="text-[#FF4DB8]" />
+          </motion.div>
+        </div>
+
+        <div className="absolute bottom-9 right-10 hidden font-orbitron text-[10px] tracking-[0.3em] text-white/40 md:block">
+          01 / 04
+        </div>
+      </section>
+
+      {/* ========================================================= */}
+      {/* 02. FOUR CREATIVE WORLDS                                  */}
+      {/* ========================================================= */}
+      <section className="relative overflow-hidden bg-[#080F36] py-28 sm:py-32 lg:py-36">
+        <div className="pointer-events-none absolute -right-48 top-20 h-[500px] w-[500px] rounded-full bg-[#FF4DB8]/10 blur-[150px]" />
+        <div className="pointer-events-none absolute -left-48 bottom-0 h-[450px] w-[450px] rounded-full bg-[#FF789A]/10 blur-[150px]" />
+
+        <div className="relative z-10 mx-auto w-full max-w-[1800px] px-6 sm:px-10 lg:px-16 xl:px-20">
+          <motion.div
             initial="hidden"
             whileInView="visible"
-            viewport={{ once: true, amount: 0.3 }}
-            className="max-w-[440px]"
+            viewport={{ once: true, amount: 0.2 }}
+            variants={stagger}
+            className="mb-16 flex flex-col justify-between gap-8 lg:flex-row lg:items-end"
           >
-            <motion.div
-              variants={fadeInUp}
-              className="mb-7 flex items-center gap-3 text-xs font-medium uppercase tracking-[0.2em] text-[#B20B28]"
+            <div>
+              <motion.div variants={fadeUp}>
+                <SectionLabel>Explore your creative side</SectionLabel>
+              </motion.div>
+
+              <motion.h2
+                variants={fadeUp}
+                className="font-orbitron text-4xl font-semibold leading-[1.3] tracking-tight sm:text-5xl lg:text-[65px]"
+              >
+                Four worlds.
+                <span className="block bg-gradient-to-r from-[#FF4DB8] via-[#FF91C8] to-[#FF789A] bg-clip-text italic text-transparent">
+                  One universe.
+                </span>
+              </motion.h2>
+            </div>
+
+            <motion.p
+              variants={fadeUp}
+              className="max-w-[390px] text-sm leading-8 text-[#AAB3D0]"
             >
-              More than a platform
-              <span className="h-px w-10 bg-[#FF1744]" />
+              Every talent has a different language. Every creator has a
+              different story. Find your world inside PRATIVA.
+            </motion.p>
+          </motion.div>
+
+          {/* Category cards */}
+          <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-4">
+            {worlds.map((world, index) => {
+              const Icon = world.icon;
+
+              return (
+                <motion.article
+                  key={world.name}
+                  initial={{ opacity: 0, y: 40 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true, amount: 0.15 }}
+                  transition={{
+                    duration: 0.7,
+                    delay: index * 0.12,
+                    ease,
+                  }}
+                  whileHover={{ y: -9 }}
+                  className="group relative flex min-h-[380px] flex-col overflow-hidden rounded-[25px] border border-white/[0.09] bg-[#0D1747] p-7 transition-all duration-500 hover:border-white/20 sm:min-h-[420px]"
+                >
+                  <div
+                    className="pointer-events-none absolute -right-20 -top-20 h-56 w-56 rounded-full opacity-0 blur-[70px] transition-opacity duration-500 group-hover:opacity-100"
+                    style={{ backgroundColor: world.glow }}
+                  />
+
+                  <div className="relative flex items-center justify-between">
+                    <span className="font-orbitron text-xs tracking-[0.2em] text-[#7886B5]">
+                      / {world.number}
+                    </span>
+
+                    <div
+                      className="flex h-12 w-12 items-center justify-center rounded-2xl border border-white/10 bg-white/[0.04] transition-all duration-500 group-hover:scale-110"
+                      style={{
+                        color: world.accent,
+                        boxShadow: `0 0 25px ${world.glow}`,
+                      }}
+                    >
+                      <Icon size={24} strokeWidth={1.5} />
+                    </div>
+                  </div>
+
+                  <div className="relative mt-auto">
+                    <p
+                      className="mb-4 font-orbitron text-[9px] font-semibold uppercase tracking-[0.2em]"
+                      style={{ color: world.accent }}
+                    >
+                      {world.category}
+                    </p>
+
+                    <h3 className="font-orbitron text-xl font-semibold leading-relaxed tracking-tight text-white sm:text-[22px]">
+                      {world.name}
+                    </h3>
+
+                    <p
+                      className="mt-3 text-sm font-medium"
+                      style={{ color: world.accent }}
+                    >
+                      {world.subtitle}
+                    </p>
+
+                    <p className="mt-4 text-[12px] leading-7 text-[#AAB3D0]">
+                      {world.description}
+                    </p>
+                  </div>
+                </motion.article>
+              );
+            })}
+          </div>
+
+          <p className="mt-10 text-center text-xs tracking-wide text-[#7480A8]">
+            Different expressions. One shared passion.
+          </p>
+        </div>
+      </section>
+
+      {/* ========================================================= */}
+      {/* 03. ABOUT PRATIVA                                         */}
+      {/* ========================================================= */}
+      <section className="relative overflow-hidden bg-[#050A30] py-28 sm:py-36">
+        <div className="pointer-events-none absolute left-0 top-1/2 h-[450px] w-[450px] -translate-y-1/2 rounded-full bg-[#FF4DB8]/10 blur-[140px]" />
+        <div className="pointer-events-none absolute right-0 top-0 h-[350px] w-[350px] rounded-full bg-[#FF789A]/10 blur-[130px]" />
+
+        <div className="relative z-10 mx-auto grid w-full max-w-[1600px] items-center gap-16 px-6 sm:px-10 lg:grid-cols-2 lg:gap-24 lg:px-20">
+          <motion.div
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, amount: 0.2 }}
+            variants={stagger}
+          >
+            <motion.div variants={fadeUp}>
+              <SectionLabel>More than a platform</SectionLabel>
             </motion.div>
 
             <motion.h2
-              variants={fadeInUp}
-              className="font-serif text-[54px] leading-[0.98] tracking-[-2px] sm:text-[68px]"
+              variants={fadeUp}
+              className="font-orbitron text-4xl font-semibold leading-[1.3] tracking-tight sm:text-5xl lg:text-[60px]"
             >
-              A Creative
-              <span className="block italic text-[#E5092D]">Collective.</span>
+              Your talent.
+              <span className="block italic text-[#FF4DB8]">
+                Your identity.
+              </span>
+              <span className="block text-white">Your universe.</span>
             </motion.h2>
 
             <motion.p
-              variants={fadeInUp}
-              className="mt-7 text-[15px] leading-7 text-[#45413F] sm:text-base"
+              variants={fadeUp}
+              className="mt-9 max-w-[500px] text-sm leading-8 text-[#AAB3D0] sm:text-base font-light"
             >
-              Prativa is a home for dreamers, creators, and storytellers. A
-              space where art, ideas, and imagination come together to inspire
-              something extraordinary.
+              We believe extraordinary talent exists everywhere. Sometimes it
+              lives in a photograph, sometimes in a melody, sometimes in words
+              that touch a heart, or colours that bring imagination to life.
             </motion.p>
 
-            <motion.div variants={fadeInUp}>
+            <motion.p
+              variants={fadeUp}
+              className="mt-5 max-w-[500px] text-sm leading-8 text-[#AAB3D0] sm:text-base font-light"
+            >
+              PRATIVA brings creative people together and gives their work a
+              place to be discovered, appreciated and celebrated.
+            </motion.p>
+
+            <motion.div variants={fadeUp}>
               <Link
-                to="/about"
-                className="group mt-9 inline-flex items-center gap-4 rounded-full border border-[#242424] px-6 py-3 text-sm transition-all duration-300 hover:border-[#E5092D] hover:bg-[#E5092D] hover:text-white hover:shadow-lg hover:shadow-red-500/10 active:scale-95"
+                to="/explore"
+                className="group mt-10 inline-flex items-center gap-4 font-orbitron text-xs font-semibold text-[#FF4DB8] transition-colors hover:text-[#FF91C8]"
               >
-                Learn More
+                Discover our story
                 <ArrowRight
-                  size={16}
-                  className="transition-transform duration-300 group-hover:translate-x-1.5"
+                  size={18}
+                  className="transition-transform group-hover:translate-x-2"
                 />
               </Link>
             </motion.div>
           </motion.div>
+
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9 }}
+            whileInView={{ opacity: 1, scale: 1 }}
+            viewport={{ once: true }}
+            transition={{ duration: 1, ease }}
+            className="relative mx-auto flex aspect-square w-full max-w-[480px] items-center justify-center select-none"
+          >
+            <div className="absolute inset-5 rounded-full border border-[#FF4DB8]/15" />
+            <div className="absolute inset-12 rounded-full border border-dashed border-[#FF91C8]/30" />
+            <div className="absolute inset-20 rounded-full border border-[#FF789A]/15" />
+            <div className="absolute h-64 w-64 rounded-full bg-[#FF4DB8]/20 blur-[90px]" />
+
+            <div className="relative z-10 text-center">
+              <div className="mb-5 flex justify-center">
+                <div className="flex h-16 w-16 items-center justify-center rounded-2xl border border-[#FF4DB8]/30 bg-[#FF4DB8]/10 shadow-[0_0_35px_rgba(255,77,184,0.15)]">
+                  <Sparkles size={31} className="text-[#FF4DB8]" />
+                </div>
+              </div>
+
+              <h3 className="font-orbitron text-5xl font-bold tracking-[-0.06em] text-white sm:text-6xl">
+                Prativa<span className="text-[#FF789A]">.</span>
+              </h3>
+
+              <p className="mt-4 font-orbitron text-[9px] uppercase tracking-[0.25em] text-[#AAB3D0]">
+                Every talent matters
+              </p>
+            </div>
+
+            {[
+              {
+                icon: Camera,
+                position: "left-2 top-[24%]",
+                color: "#FF4DB8",
+              },
+              {
+                icon: Music2,
+                position: "right-1 top-[25%]",
+                color: "#FF789A",
+              },
+              {
+                icon: Feather,
+                position: "bottom-[20%] left-4",
+                color: "#FF91C8",
+              },
+              {
+                icon: Palette,
+                position: "bottom-[18%] right-4",
+                color: "#FF4DB8",
+              },
+            ].map((item, index) => {
+              const Icon = item.icon;
+              return (
+                <motion.div
+                  key={index}
+                  animate={{ y: [0, -10, 0] }}
+                  transition={{
+                    duration: 3 + index,
+                    repeat: Infinity,
+                    ease: "easeInOut",
+                  }}
+                  className={`absolute ${item.position} z-20 flex h-14 w-14 items-center justify-center rounded-2xl border border-white/10 bg-[#0D1747]/90 shadow-[0_0_30px_rgba(0,0,0,0.3)] backdrop-blur-lg`}
+                  style={{ color: item.color }}
+                >
+                  <Icon size={23} strokeWidth={1.5} />
+                </motion.div>
+              );
+            })}
+
+            <div className="absolute right-[20%] top-[8%] text-[#FF91C8]/70">
+              <Stars size={19} />
+            </div>
+
+            <div className="absolute bottom-[9%] left-[30%] text-[#FF4DB8]/60">
+              <Sparkles size={17} />
+            </div>
+          </motion.div>
         </div>
       </section>
 
-      {/* ================= JOIN PRATIVA SECTION ================= */}
-
-      <section className="relative isolate overflow-hidden border-y border-black/[0.05] bg-[#EEECE8] px-6 py-24 sm:px-10 lg:px-14 lg:py-32">
-        <PaintSplash
-          variant={1}
-          float
-          floatDuration={10}
-          className="-right-36 -top-20 w-[650px] rotate-12 opacity-30"
-        />
-
-        <PaintSplash
-          variant={2}
-          float
-          floatDuration={9}
-          className="-bottom-24 -left-28 w-[480px] -rotate-12 opacity-20"
-        />
-
-        {/* Ambient pulsing rings */}
-        <motion.div
-          animate={{ scale: [1, 1.06, 1], opacity: [0.2, 0.35, 0.2] }}
-          transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
-          className="pointer-events-none absolute -right-20 -top-40 h-[400px] w-[400px] rounded-full border border-[#FF1744]/25"
-        />
+      {/* ========================================================= */}
+      {/* 04. FINAL CTA                                             */}
+      {/* ========================================================= */}
+      <section className="relative overflow-hidden bg-[#080F36] px-6 py-32 sm:py-40">
+        <div className="pointer-events-none absolute left-1/2 top-1/2 h-[600px] w-[600px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[#FF4DB8]/15 blur-[150px]" />
+        <div className="pointer-events-none absolute left-0 top-0 h-px w-full bg-gradient-to-r from-transparent via-[#FF4DB8]/50 to-transparent" />
 
         <motion.div
-          animate={{ scale: [1, 1.09, 1], opacity: [0.15, 0.3, 0.15] }}
-          transition={{
-            duration: 7,
-            repeat: Infinity,
-            ease: "easeInOut",
-            delay: 1,
-          }}
-          className="pointer-events-none absolute -right-10 -top-32 h-[320px] w-[320px] rounded-full border border-[#FF1744]/20"
-        />
-
-        <motion.div
-          variants={staggerContainer}
           initial="hidden"
           whileInView="visible"
           viewport={{ once: true, amount: 0.3 }}
-          className="relative mx-auto flex max-w-[1350px] flex-col items-start justify-between gap-12 lg:flex-row lg:items-center"
+          variants={stagger}
+          className="relative z-10 mx-auto max-w-[1100px] text-center"
         >
-          <div className="max-w-[700px]">
-            <motion.p
-              variants={fadeInUp}
-              className="mb-6 text-xs font-medium uppercase tracking-[0.2em] text-[#B20B28]"
-            >
-              Your creativity deserves a stage
-            </motion.p>
-
-            <motion.h2
-              variants={fadeInUp}
-              className="font-serif text-[52px] leading-[1.02] tracking-[-2px] sm:text-[68px] lg:text-[78px]"
-            >
-              Share Your Art
-              <span className="block italic text-[#E5092D]">
-                with the World.
+          <motion.div variants={fadeUp} className="mb-9 flex justify-center">
+            <div className="flex items-center gap-3 rounded-full border border-[#FF4DB8]/40 bg-[#FF4DB8]/10 px-5 py-2.5">
+              <Sparkles size={14} className="text-[#FF91C8]" />
+              <span className="font-orbitron text-[9px] font-semibold uppercase tracking-[0.2em] text-[#FFD1E9]">
+                Your journey starts here
               </span>
-            </motion.h2>
+            </div>
+          </motion.div>
 
-            <motion.p
-              variants={fadeInUp}
-              className="mt-7 max-w-[490px] text-[15px] leading-7 text-[#625D59]"
-            >
-              Every creator has a story worth telling. Create your space,
-              showcase your work, and let the world discover what makes you
-              different.
-            </motion.p>
-          </div>
+          <motion.h2
+            variants={fadeUp}
+            className="font-orbitron text-4xl font-semibold leading-[1.35] tracking-tight sm:text-6xl lg:text-[75px]"
+          >
+            The world deserves
+            <span className="block bg-gradient-to-r from-[#FF4DB8] via-[#FF91C8] to-[#FF789A] bg-clip-text italic text-transparent">
+              to see your talent.
+            </span>
+          </motion.h2>
+
+          <motion.p
+            variants={fadeUp}
+            className="mx-auto mt-8 max-w-[540px] text-sm leading-8 text-[#AAB3D0] sm:text-base font-light"
+          >
+            Don't let your creativity remain unseen. Share your work, discover
+            other creators and become part of a universe that celebrates every
+            form of talent.
+          </motion.p>
 
           <motion.div
-            variants={fadeInUp}
-            className="flex flex-col items-start gap-5 lg:items-end"
+            variants={fadeUp}
+            className="mt-12 flex flex-wrap justify-center gap-5"
           >
-            <motion.div
-              whileHover={{ scale: 1.04, y: -2 }}
-              whileTap={{ scale: 0.97 }}
-              transition={{ type: "spring", stiffness: 400, damping: 17 }}
+            <Link
+              to="/register"
+              className="group inline-flex items-center gap-4 rounded-full bg-gradient-to-r from-[#FF4DB8] to-[#FF789A] px-9 py-4 font-orbitron text-xs font-bold text-white shadow-[0_0_35px_rgba(255,77,184,0.2)] transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_0_45px_rgba(255,77,184,0.4)]"
             >
-              <Link
-                to="/register"
-                className="group inline-flex items-center gap-5 rounded-full bg-[#E5092D] px-8 py-5 text-sm font-medium text-white transition-colors duration-300 hover:bg-[#C90024] hover:shadow-xl hover:shadow-red-500/25"
-              >
-                Join Prativa
-                <ArrowRight
-                  size={18}
-                  className="transition-transform duration-300 group-hover:translate-x-1.5"
-                />
-              </Link>
-            </motion.div>
+              Become a Creator
+              <ArrowUpRight
+                size={18}
+                className="transition-transform group-hover:translate-x-1 group-hover:-translate-y-1"
+              />
+            </Link>
 
-            <span className="font-serif text-sm italic text-[#77716F]">
-              Your journey starts here.
-            </span>
+            <Link
+              to="/explore"
+              className="inline-flex items-center gap-3 rounded-full border border-white/20 px-9 py-4 font-orbitron text-xs font-medium text-white transition-all hover:border-[#FF4DB8]/60 hover:bg-[#FF4DB8]/10"
+            >
+              Explore Talents
+              <ArrowRight size={17} className="text-[#FF4DB8]" />
+            </Link>
           </motion.div>
         </motion.div>
       </section>
     </main>
   );
-};
-
-export default Home;
+}

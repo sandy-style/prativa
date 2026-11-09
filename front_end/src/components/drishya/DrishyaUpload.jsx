@@ -7,6 +7,7 @@ import {
   LoaderCircle,
   Camera,
   Trash2,
+  Sparkles,
 } from "lucide-react";
 
 const API_URL = import.meta.env.VITE_API_URL;
@@ -85,8 +86,6 @@ const DrishyaUpload = ({ onClose, onCreated }) => {
       formData.append("title", title.trim());
       formData.append("description", description.trim());
       formData.append("tags", tags);
-
-      // Backend upload middleware expects the field name "media".
       formData.append("media", image);
 
       const { data } = await axios.post(
@@ -117,23 +116,45 @@ const DrishyaUpload = ({ onClose, onCreated }) => {
     }
   };
 
+  const inputClass = `
+    w-full rounded-xl border border-[#00D4FF]/15
+    bg-[#071629]/80 px-4 py-3
+    text-sm text-white outline-none
+    transition-all duration-300
+    placeholder:text-white/30
+    hover:border-[#00D4FF]/30
+    focus:border-[#00D4FF]/70
+    focus:ring-2 focus:ring-[#00D4FF]/10
+  `;
+
+  const labelClass = "mb-2 block text-sm font-medium text-white/90";
+
   return (
-    <div className="w-full min-h-screen bg-[#F8F7F4] px-4 py-8 text-[#202020] sm:px-6">
-      <div className="mx-auto max-w-3xl">
-        {/* Header */}
-        <div className="mb-8 flex items-center justify-between">
+    <div className="relative min-h-screen w-full overflow-hidden bg-[#030A17] px-4 py-8 text-white sm:px-6 sm:py-12">
+      {/* BACKGROUND ATMOSPHERE */}
+      <div className="pointer-events-none absolute -left-40 -top-40 h-[450px] w-[450px] rounded-full bg-[#00D4FF]/10 blur-[130px]" />
+      <div className="pointer-events-none absolute -bottom-40 -right-40 h-[450px] w-[450px] rounded-full bg-[#8A2BE2]/10 blur-[130px]" />
+
+      <div className="relative z-10 mx-auto max-w-3xl">
+        {/* HEADER */}
+        <div className="mb-8 flex items-start justify-between gap-4">
           <div>
-            <div className="mb-2 flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.2em] text-[#E5092D]">
-              <Camera size={15} />
-              Drishya Manch
+            <div className="mb-3 flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.25em] text-[#00D4FF]">
+              <Camera size={16} />
+              <span>Drishya Manch</span>
+              <Sparkles size={13} />
             </div>
 
-            <h1 className="font-serif text-3xl sm:text-4xl">
-              Share your vision.
+            <h1 className="font-orbitron text-2xl font-bold uppercase leading-tight tracking-tight sm:text-4xl">
+              Share your{" "}
+              <span className="text-[#00D4FF] drop-shadow-[0_0_15px_rgba(0,212,255,0.4)]">
+                vision.
+              </span>
             </h1>
 
-            <p className="mt-2 text-sm text-[#77716F]">
-              Every photograph has a story. Let yours be seen.
+            <p className="mt-3 max-w-lg text-sm leading-relaxed text-white/50">
+              Every photograph has a story. Capture your perspective and let the
+              world experience it.
             </p>
           </div>
 
@@ -141,33 +162,57 @@ const DrishyaUpload = ({ onClose, onCreated }) => {
             <button
               type="button"
               onClick={onClose}
-              className="rounded-full border border-[#E8E3DD] p-2 transition hover:bg-[#EEEAE4]"
               aria-label="Close upload"
+              className="
+                shrink-0 rounded-full border border-white/10
+                bg-white/5 p-2.5 text-white/70
+                transition-all duration-300
+                hover:border-[#00D4FF]/50
+                hover:bg-[#00D4FF]/10 hover:text-[#00D4FF]
+              "
             >
-              <X size={20} />
+              <X size={19} />
             </button>
           )}
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-6">
-          {/* Image upload */}
+        {/* FORM CARD */}
+        <form
+          onSubmit={handleSubmit}
+          className="
+            space-y-6 rounded-2xl
+            border border-[#00D4FF]/15
+            bg-[#071629]/80 p-4
+            shadow-[0_20px_80px_rgba(0,0,0,0.3)]
+            backdrop-blur-xl
+            sm:p-7
+          "
+        >
+          {/* IMAGE UPLOAD */}
           <div>
-            <label className="mb-3 block text-sm font-semibold">
-              Your photograph
-            </label>
+            <label className={labelClass}>Your photograph</label>
 
             {preview ? (
-              <div className="relative overflow-hidden rounded-2xl border border-[#E8E3DD] bg-white">
+              <div className="group relative overflow-hidden rounded-xl border border-[#00D4FF]/20 bg-[#030A17]">
                 <img
                   src={preview}
                   alt="Selected photograph preview"
                   className="max-h-[550px] w-full object-contain"
                 />
 
+                <div className="absolute inset-0 bg-gradient-to-t from-[#030A17]/70 via-transparent to-transparent opacity-0 transition-opacity group-hover:opacity-100" />
+
                 <button
                   type="button"
                   onClick={removeImage}
-                  className="absolute right-3 top-3 flex items-center gap-2 rounded-full bg-black/70 px-3 py-2 text-xs text-white transition hover:bg-[#E5092D]"
+                  className="
+                    absolute right-3 top-3
+                    flex items-center gap-2 rounded-full
+                    border border-white/10 bg-[#030A17]/90
+                    px-3 py-2 text-xs font-medium text-white
+                    transition hover:border-red-400/50
+                    hover:bg-red-500/20 hover:text-red-400
+                  "
                 >
                   <Trash2 size={14} />
                   Remove
@@ -177,16 +222,37 @@ const DrishyaUpload = ({ onClose, onCreated }) => {
               <button
                 type="button"
                 onClick={() => fileInputRef.current?.click()}
-                className="flex min-h-[280px] w-full flex-col items-center justify-center rounded-2xl border-2 border-dashed border-[#D8D1C8] bg-white px-5 text-center transition hover:border-[#E5092D] hover:bg-[#FDFCFB]"
+                className="
+                  flex min-h-[260px] w-full flex-col
+                  items-center justify-center rounded-xl
+                  border-2 border-dashed border-[#00D4FF]/25
+                  bg-[#030A17]/70 px-5 text-center
+                  transition-all duration-300
+                  hover:border-[#00D4FF]/70
+                  hover:bg-[#00D4FF]/[0.04]
+                  hover:shadow-[inset_0_0_30px_rgba(0,212,255,0.04)]
+                "
               >
-                <div className="mb-4 rounded-full bg-[#FCE9EC] p-4 text-[#E5092D]">
-                  <ImagePlus size={28} />
+                <div
+                  className="
+                  mb-5 rounded-2xl border border-[#00D4FF]/20
+                  bg-[#00D4FF]/10 p-5 text-[#00D4FF]
+                  shadow-[0_0_25px_rgba(0,212,255,0.12)]
+                "
+                >
+                  <ImagePlus size={30} />
                 </div>
 
-                <span className="font-medium">Choose a photograph</span>
+                <span className="text-sm font-semibold text-white">
+                  Choose a photograph
+                </span>
 
-                <span className="mt-2 text-xs text-[#8A8580]">
-                  JPG, PNG, WEBP · Maximum 10 MB
+                <span className="mt-2 text-xs text-white/40">
+                  Drag your creativity here or browse files
+                </span>
+
+                <span className="mt-4 rounded-full border border-white/10 bg-white/[0.03] px-3 py-1.5 text-[10px] uppercase tracking-wider text-white/40">
+                  JPG · PNG · WEBP · MAX 10 MB
                 </span>
               </button>
             )}
@@ -203,20 +269,17 @@ const DrishyaUpload = ({ onClose, onCreated }) => {
               <button
                 type="button"
                 onClick={() => fileInputRef.current?.click()}
-                className="mt-3 text-sm font-medium text-[#E5092D] hover:underline"
+                className="mt-3 text-xs font-medium text-[#00D4FF] transition hover:text-white"
               >
-                Choose a different photograph
+                Change photograph →
               </button>
             )}
           </div>
 
-          {/* Title */}
+          {/* TITLE */}
           <div>
-            <label
-              htmlFor="drishya-title"
-              className="mb-2 block text-sm font-semibold"
-            >
-              Title
+            <label htmlFor="drishya-title" className={labelClass}>
+              Photograph title
             </label>
 
             <input
@@ -227,18 +290,15 @@ const DrishyaUpload = ({ onClose, onCreated }) => {
               placeholder="Give your photograph a name..."
               maxLength={100}
               required
-              className="w-full rounded-xl border border-[#E5E0D9] bg-white px-4 py-3 text-sm outline-none transition placeholder:text-[#AAA39B] focus:border-[#E5092D]"
+              className={inputClass}
             />
           </div>
 
-          {/* Description */}
+          {/* DESCRIPTION */}
           <div>
-            <label
-              htmlFor="drishya-description"
-              className="mb-2 block text-sm font-semibold"
-            >
+            <label htmlFor="drishya-description" className={labelClass}>
               Your story
-              <span className="ml-2 font-normal text-[#99918A]">
+              <span className="ml-2 text-xs font-normal text-white/35">
                 (Optional)
               </span>
             </label>
@@ -250,20 +310,17 @@ const DrishyaUpload = ({ onClose, onCreated }) => {
               placeholder="Tell us what was happening behind this photograph..."
               maxLength={2000}
               rows={5}
-              className="w-full resize-y rounded-xl border border-[#E5E0D9] bg-white px-4 py-3 text-sm outline-none transition placeholder:text-[#AAA39B] focus:border-[#E5092D]"
+              className={`${inputClass} resize-y`}
             />
 
-            <p className="mt-1 text-right text-xs text-[#99918A]">
+            <p className="mt-2 text-right text-xs text-white/30">
               {description.length}/2000
             </p>
           </div>
 
-          {/* Tags */}
+          {/* TAGS */}
           <div>
-            <label
-              htmlFor="drishya-tags"
-              className="mb-2 block text-sm font-semibold"
-            >
+            <label htmlFor="drishya-tags" className={labelClass}>
               Categories / Tags
             </label>
 
@@ -273,33 +330,43 @@ const DrishyaUpload = ({ onClose, onCreated }) => {
               value={tags}
               onChange={(e) => setTags(e.target.value)}
               placeholder="nature, travel, architecture..."
-              className="w-full rounded-xl border border-[#E5E0D9] bg-white px-4 py-3 text-sm outline-none transition placeholder:text-[#AAA39B] focus:border-[#E5092D]"
+              className={inputClass}
             />
 
-            <p className="mt-2 text-xs text-[#99918A]">
-              Separate tags with commas. For example: nature, wildlife,
-              photography.
+            <p className="mt-2 text-xs text-white/35">
+              Separate tags with commas. Example: nature, wildlife, photography.
             </p>
           </div>
 
-          {/* Messages */}
+          {/* ERROR */}
           {error && (
-            <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+            <div className="rounded-xl border border-red-400/20 bg-red-400/10 px-4 py-3 text-sm text-red-300">
               {error}
             </div>
           )}
 
+          {/* SUCCESS */}
           {success && (
-            <div className="rounded-xl border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-700">
+            <div className="rounded-xl border border-[#00D4FF]/20 bg-[#00D4FF]/10 px-4 py-3 text-sm text-[#8DEFFF]">
               {success}
             </div>
           )}
 
-          {/* Submit */}
+          {/* SUBMIT */}
           <button
             type="submit"
             disabled={loading}
-            className="flex w-full items-center justify-center gap-3 rounded-xl bg-[#E5092D] px-6 py-4 text-sm font-semibold text-white transition hover:bg-[#C90024] disabled:cursor-not-allowed disabled:opacity-60"
+            className="
+              group flex w-full items-center justify-center gap-3
+              rounded-xl border border-[#00D4FF]
+              bg-[#00D4FF] px-6 py-4
+              text-sm font-bold text-[#030A17]
+              shadow-[0_0_25px_rgba(0,212,255,0.15)]
+              transition-all duration-300
+              hover:bg-[#5BE5F8]
+              hover:shadow-[0_0_35px_rgba(0,212,255,0.3)]
+              disabled:cursor-not-allowed disabled:opacity-50
+            "
           >
             {loading ? (
               <>
@@ -314,7 +381,7 @@ const DrishyaUpload = ({ onClose, onCreated }) => {
             )}
           </button>
 
-          <p className="text-center text-xs text-[#99918A]">
+          <p className="text-center text-[11px] text-white/30">
             By publishing, your photograph will be shared on Drishya Manch.
           </p>
         </form>

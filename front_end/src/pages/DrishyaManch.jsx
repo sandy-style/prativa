@@ -1,18 +1,25 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import axios from "axios";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useNavigationType } from "react-router-dom";
 import {
   Search,
   SlidersHorizontal,
   ChevronDown,
   LoaderCircle,
   RefreshCw,
-  Upload,
+  Camera,
+  Aperture,
+  Focus,
+  Images,
+  X,
 } from "lucide-react";
+
+import drishyaHero from "../assets/drishyahero.png";
 
 import { useAuth } from "../context/AuthContext";
 import DrishyaGrid from "../components/drishya/DrishyaGrid";
 import DrishyaUpload from "../components/drishya/DrishyaUpload";
+import DrishyaNavbar from "../components/drishya/DrishyaNavbar";
 import CreateProfile from "../components/CreateProfile";
 
 const API_URL = import.meta.env.VITE_API_URL?.replace(/\/$/, "");
@@ -204,8 +211,124 @@ const demoPosts = [
   },
 ];
 
+// ==========================================
+// INTRO LOADER
+// ==========================================
+
+const DrishyaIntroLoader = () => (
+  <div className="drishya-loader fixed inset-0 z-[200] flex min-h-screen items-center justify-center overflow-hidden bg-[#030A17]">
+    <div className="pointer-events-none absolute inset-0">
+      <div className="absolute left-1/2 top-1/2 h-[420px] w-[420px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[#00D4FF]/[0.07] blur-[120px]" />
+      <div className="absolute inset-0 opacity-[0.035] [background-image:linear-gradient(rgba(0,212,255,0.5)_1px,transparent_1px),linear-gradient(90deg,rgba(0,212,255,0.5)_1px,transparent_1px)] [background-size:70px_70px]" />
+    </div>
+
+    <div className="relative z-10 flex flex-col items-center px-6 text-center">
+      <div className="relative mb-9 flex h-32 w-32 items-center justify-center">
+        <div className="drishya-outer-ring absolute inset-0 rounded-full border border-dashed border-[#00D4FF]/30" />
+        <div className="drishya-middle-ring absolute inset-3 rounded-full border border-[#00D4FF]/20" />
+        <div className="absolute inset-7 rounded-full border border-[#00D4FF]/40 bg-[#07182A] shadow-[0_0_45px_rgba(0,212,255,0.12)]" />
+
+        <Aperture
+          size={55}
+          strokeWidth={1.2}
+          className="drishya-aperture relative z-10 text-[#00D4FF]"
+        />
+      </div>
+
+      <div className="space-y-3">
+        <div className="flex items-center justify-center gap-2 text-[#00D4FF]">
+          <Camera size={16} />
+          <span className="text-[10px] font-semibold uppercase tracking-[0.4em]">
+            PRATIVA
+          </span>
+        </div>
+
+        <h1 className="text-3xl font-semibold tracking-[0.1em] text-white sm:text-4xl">
+          DRISHYA <span className="text-[#00D4FF]">MANCH</span>
+        </h1>
+
+        <p className="text-sm text-slate-400">Every frame tells a story.</p>
+      </div>
+
+      <div className="mt-10 w-44">
+        <div className="mb-3 flex items-center justify-between">
+          <span className="text-[9px] uppercase tracking-[0.2em] text-slate-500">
+            Capturing moments
+          </span>
+          <Focus size={13} className="text-[#00D4FF]" />
+        </div>
+
+        <div className="h-[2px] overflow-hidden rounded-full bg-white/10">
+          <div className="drishya-progress h-full rounded-full bg-[#00D4FF]" />
+        </div>
+      </div>
+    </div>
+
+    <style>{`
+      .drishya-loader {
+        animation: drishyaFadeIn 0.4s ease-out both;
+      }
+
+      .drishya-outer-ring {
+        animation: drishyaRotate 12s linear infinite;
+      }
+
+      .drishya-middle-ring {
+        animation: drishyaRotateReverse 8s linear infinite;
+      }
+
+      .drishya-aperture {
+        animation: drishyaPulse 2s ease-in-out infinite;
+      }
+
+      .drishya-progress {
+        width: 35%;
+        animation: drishyaProgress 1.7s ease-in-out infinite;
+      }
+
+      @keyframes drishyaRotate {
+        to { transform: rotate(360deg); }
+      }
+
+      @keyframes drishyaRotateReverse {
+        from { transform: rotate(360deg); }
+        to { transform: rotate(0deg); }
+      }
+
+      @keyframes drishyaPulse {
+        0%, 100% { transform: scale(0.94); opacity: 0.75; }
+        50% { transform: scale(1.06); opacity: 1; }
+      }
+
+      @keyframes drishyaProgress {
+        0% { transform: translateX(-120%); }
+        100% { transform: translateX(390%); }
+      }
+
+      @keyframes drishyaFadeIn {
+        from { opacity: 0; }
+        to { opacity: 1; }
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        .drishya-outer-ring,
+        .drishya-middle-ring,
+        .drishya-aperture,
+        .drishya-progress {
+          animation: none;
+        }
+      }
+    `}</style>
+  </div>
+);
+
+// ==========================================
+// DRISHYA MANCH PAGE
+// ==========================================
+
 const DrishyaManch = () => {
   const navigate = useNavigate();
+  const navigationType = useNavigationType();
 
   const {
     isAuthenticated,
@@ -216,9 +339,13 @@ const DrishyaManch = () => {
   } = useAuth();
 
   const [posts, setPosts] = useState(demoPosts);
-
   const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
+
+  const [showIntroLoader, setShowIntroLoader] = useState(
+    navigationType === "PUSH",
+  );
+  const [introMinimumElapsed, setIntroMinimumElapsed] = useState(false);
 
   const [error, setError] = useState("");
   const [loadMoreError, setLoadMoreError] = useState("");
@@ -237,7 +364,27 @@ const DrishyaManch = () => {
 
   const likingPosts = useRef(new Set());
 
-  // Check authentication and profile before opening upload.
+  // Intro timing
+  useEffect(() => {
+    if (!showIntroLoader) return;
+
+    const timer = window.setTimeout(() => {
+      setIntroMinimumElapsed(true);
+    }, 1700);
+
+    return () => window.clearTimeout(timer);
+  }, [showIntroLoader]);
+
+  useEffect(() => {
+    if (showIntroLoader && !loading && introMinimumElapsed) {
+      setShowIntroLoader(false);
+    }
+  }, [showIntroLoader, loading, introMinimumElapsed]);
+
+  // ==========================================
+  // UPLOAD AUTHENTICATION
+  // ==========================================
+
   const handleUploadClick = () => {
     if (authLoading || profileLoading) return;
 
@@ -254,7 +401,6 @@ const DrishyaManch = () => {
     setShowUpload(true);
   };
 
-  // Called after successful profile creation.
   const handleProfileCreated = async () => {
     try {
       await refreshProfile();
@@ -268,7 +414,10 @@ const DrishyaManch = () => {
     }
   };
 
-  // Fetch gallery.
+  // ==========================================
+  // FETCH GALLERY
+  // ==========================================
+
   useEffect(() => {
     let cancelled = false;
 
@@ -316,14 +465,11 @@ const DrishyaManch = () => {
         if (cancelled) return;
 
         console.warn("Using Drishya demo content:", err.message);
-
         setPosts(demoPosts);
         setIsDemoMode(true);
         setHasMore(false);
       } finally {
-        if (!cancelled) {
-          setLoading(false);
-        }
+        if (!cancelled) setLoading(false);
       }
     };
 
@@ -334,7 +480,10 @@ const DrishyaManch = () => {
     };
   }, [activeCategory, sort, refreshKey]);
 
-  // Load more real photographs.
+  // ==========================================
+  // LOAD MORE
+  // ==========================================
+
   const handleLoadMore = async () => {
     if (loadingMore || loading || !hasMore || isDemoMode) return;
 
@@ -385,12 +534,14 @@ const DrishyaManch = () => {
     }
   };
 
-  // Like or unlike a photograph.
+  // ==========================================
+  // LIKE / UNLIKE
+  // ==========================================
+
   const handleLike = async (postId) => {
     if (likingPosts.current.has(postId)) return;
 
     const targetPost = posts.find((post) => post._id === postId);
-
     if (!targetPost) return;
 
     likingPosts.current.add(postId);
@@ -459,7 +610,10 @@ const DrishyaManch = () => {
     }
   };
 
-  // Search and filter photographs.
+  // ==========================================
+  // SEARCH AND FILTER
+  // ==========================================
+
   const filteredPosts = useMemo(() => {
     let result = [...posts];
 
@@ -510,215 +664,285 @@ const DrishyaManch = () => {
     setRefreshKey((previous) => previous + 1);
   };
 
+  // ==========================================
+  // PAGE
+  // ==========================================
+
   return (
-    <main className="min-h-screen bg-[#F8F7F4]">
-      {/* Gallery */}
-      <section className="mx-auto max-w-[1600px] px-5 py-8 sm:px-8 lg:px-12">
-        {/* Demo notice */}
-        {isDemoMode && !loading && (
-          <div className="mb-6 rounded-xl border border-[#EAE6E0] bg-white px-4 py-3 text-xs text-[#77716F]">
-            You're viewing sample photographs. Real community posts will appear
-            here when available.
+    <>
+      <main className="min-h-screen overflow-x-hidden bg-[#030A17] text-white">
+        {/* NAVBAR */}
+        <DrishyaNavbar
+          onUpload={handleUploadClick}
+          uploadingDisabled={authLoading || profileLoading}
+        />
+
+        {/* HERO IMAGE */}
+
+        <section className="relative w-full overflow-hidden bg-[#030A17]">
+          <img
+            src={drishyaHero}
+            alt="Drishya Manch"
+            className="block h-auto max-h-[400px] min-h-[240px] w-full object-cover object-center"
+          />
+          <div className="absolute inset-0 pointer-events-none bg-[linear-gradient(90deg,rgba(3,10,23,0.98)_0%,rgba(3,10,23,0.78)_30%,rgba(3,10,23,0.35)_60%,transparent_100%)]" />
+
+          <div className="absolute inset-0 flex items-center gap-4 px-5 sm:gap-7 sm:px-10 md:px-16 lg:px-20">
+            {/* NEON CAMERA */}
+            <Camera
+              className="
+        h-14 w-14 shrink-0
+        text-[#00D4FF]
+        drop-shadow-[0_0_10px_rgba(0,212,255,0.9)]
+        sm:h-20 sm:w-20
+        md:h-28 md:w-28
+        lg:h-32 lg:w-32
+      "
+              strokeWidth={1.5}
+            />
+
+            {/* TITLE + TAGLINE */}
+            <div className="flex flex-col">
+              <h1
+                className="
+          font-[Orbitron] font-bold uppercase
+          leading-[0.95] tracking-[-0.04em]
+          text-4xl text-white
+          drop-shadow-[0_0_20px_rgba(0,212,255,0.2)]
+          sm:text-5xl md:text-7xl lg:text-8xl
+        "
+              >
+                Drishya
+                <br />
+                <span className="text-[#00D4FF] drop-shadow-[0_0_14px_rgba(0,212,255,0.65)]">
+                  Manch.
+                </span>
+              </h1>
+
+              <p
+                className="
+          mt-3 font-[Orbitron] font-medium
+          text-[10px] tracking-[0.2em]
+          text-[#8DEFFF]
+          sm:mt-4 sm:text-sm md:text-base
+        "
+              >
+                SHOW YOUR VISION.
+              </p>
+            </div>
           </div>
+        </section>
+
+        {/* GALLERY */}
+        <section
+          id="photography-gallery"
+          className="mx-auto max-w-[1800px] scroll-mt-20 px-4 pb-10 pt-5 sm:px-6 lg:px-9"
+        >
+          {/* CATEGORY + UPLOAD */}
+          <div className="mb-5 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+            <div className="flex gap-2 overflow-x-auto pb-1">
+              {categories.map((category) => {
+                const active = activeCategory === category;
+
+                return (
+                  <button
+                    key={category}
+                    type="button"
+                    onClick={() => setActiveCategory(category)}
+                    className={`shrink-0 rounded-full border px-5 py-2 text-[12px] font-medium transition-all duration-200 ${
+                      active
+                        ? "border-[#00D4FF] bg-[#00D4FF] text-[#03101C] shadow-[0_0_18px_rgba(0,212,255,0.18)]"
+                        : "border-white/[0.09] bg-[#0A1225]/90 text-white/75 hover:border-[#00D4FF]/50 hover:text-[#00D4FF]"
+                    }`}
+                  >
+                    {category === "All photographs" ? "All" : category}
+                  </button>
+                );
+              })}
+            </div>
+
+            <button
+              type="button"
+              onClick={handleUploadClick}
+              disabled={authLoading || profileLoading}
+              className="inline-flex shrink-0 items-center justify-center gap-2 self-start rounded-full border border-[#00D4FF] bg-transparent px-6 py-2.5 text-[12px] font-semibold text-white shadow-[0_0_16px_rgba(0,212,255,0.12)] transition hover:bg-[#00D4FF] hover:text-[#03101C] disabled:cursor-not-allowed disabled:opacity-50 lg:self-auto"
+            >
+              <Images size={15} />
+              Upload Photo
+            </button>
+          </div>
+
+          {/* GALLERY HEADER + SEARCH */}
+          <div className="mb-5 flex flex-col gap-4 border-b border-white/[0.07] pb-4 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row">
+              {/* SEARCH */}
+              <div className="relative w-full sm:w-[260px]">
+                <Search
+                  size={15}
+                  className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500"
+                />
+
+                <input
+                  type="text"
+                  value={search}
+                  onChange={(event) => setSearch(event.target.value)}
+                  placeholder="Search photographs..."
+                  className="h-10 w-full rounded-lg border border-white/[0.09] bg-[#081326] pl-10 pr-9 text-xs text-white outline-none transition placeholder:text-slate-500 focus:border-[#00D4FF]/70"
+                />
+
+                {search && (
+                  <button
+                    type="button"
+                    onClick={() => setSearch("")}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-white"
+                    aria-label="Clear search"
+                  >
+                    <X size={14} />
+                  </button>
+                )}
+              </div>
+
+              {/* SORT */}
+              <div className="relative flex h-10 shrink-0 items-center rounded-lg border border-white/[0.09] bg-[#081326] pl-3">
+                <SlidersHorizontal size={14} className="mr-2 text-slate-500" />
+
+                <select
+                  id="drishya-sort"
+                  value={sort}
+                  onChange={(event) => setSort(event.target.value)}
+                  className="h-full appearance-none bg-transparent pr-9 text-xs text-white outline-none"
+                >
+                  {sortOptions.map((option) => (
+                    <option
+                      key={option.value}
+                      value={option.value}
+                      className="bg-[#081326]"
+                    >
+                      {option.label}
+                    </option>
+                  ))}
+                </select>
+
+                <ChevronDown
+                  size={13}
+                  className="pointer-events-none absolute right-3 text-slate-400"
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* DEMO NOTICE */}
+          {isDemoMode && !loading && (
+            <div className="mb-4 rounded-lg border border-[#163047] bg-[#071525] px-4 py-2.5 text-[11px] text-slate-400">
+              You're viewing sample photographs. Real community posts will
+              appear here when available.
+            </div>
+          )}
+
+          {/* RESULTS COUNT */}
+          <div className="mb-4 flex items-center justify-between">
+            <p className="text-[11px] text-slate-500">
+              {loading
+                ? "Finding photographs..."
+                : `${filteredPosts.length} photographs`}
+            </p>
+
+            {(search || activeCategory !== "All photographs") && (
+              <button
+                type="button"
+                onClick={clearFilters}
+                className="text-[11px] text-[#00D4FF] transition hover:text-white"
+              >
+                Clear filters
+              </button>
+            )}
+          </div>
+
+          {/* ERROR */}
+          {error && !loading && (
+            <div className="mb-5 flex flex-col items-center gap-3 rounded-xl border border-[#173047] bg-[#071525] px-5 py-7 text-center">
+              <p className="text-sm text-slate-400">{error}</p>
+
+              <button
+                type="button"
+                onClick={() => setRefreshKey((previous) => previous + 1)}
+                className="flex items-center gap-2 text-xs font-medium text-[#00D4FF]"
+              >
+                <RefreshCw size={14} />
+                Try again
+              </button>
+            </div>
+          )}
+
+          {/* PHOTOGRAPHY GRID */}
+          <DrishyaGrid
+            posts={filteredPosts}
+            loading={loading}
+            onLike={handleLike}
+          />
+
+          {/* LOAD MORE */}
+          {!loading && !isDemoMode && !error && hasMore && (
+            <div className="flex flex-col items-center gap-3 pt-8">
+              {loadMoreError && (
+                <p className="text-xs text-red-400">{loadMoreError}</p>
+              )}
+
+              <button
+                type="button"
+                onClick={handleLoadMore}
+                disabled={loadingMore}
+                className="flex items-center gap-2 rounded-full border border-white/10 bg-[#081326] px-6 py-2.5 text-xs font-medium text-slate-300 transition hover:border-[#00D4FF] hover:text-[#00D4FF] disabled:opacity-50"
+              >
+                {loadingMore && (
+                  <LoaderCircle size={14} className="animate-spin" />
+                )}
+
+                {loadingMore ? "Loading..." : "Load more photographs"}
+              </button>
+            </div>
+          )}
+
+          {/* EMPTY STATE */}
+          {!loading && filteredPosts.length === 0 && (
+            <div className="py-16 text-center">
+              <Camera size={30} className="mx-auto mb-3 text-slate-600" />
+
+              <p className="text-xl font-medium text-white">
+                No photographs found.
+              </p>
+
+              <p className="mt-2 text-xs text-slate-500">
+                Try another search or category.
+              </p>
+            </div>
+          )}
+        </section>
+
+        {/* CREATE PROFILE */}
+        {showCreateProfile && (
+          <CreateProfile
+            onClose={() => setShowCreateProfile(false)}
+            onSuccess={handleProfileCreated}
+          />
         )}
 
-        {/* Upload action */}
-        <div className="mb-7 flex justify-end">
-          <button
-            type="button"
-            onClick={handleUploadClick}
-            disabled={authLoading || profileLoading}
-            className="flex shrink-0 items-center gap-2 rounded-full bg-[#E5092D] px-5 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-[#C90024] disabled:cursor-wait disabled:opacity-60"
-          >
-            {authLoading || profileLoading ? (
-              <LoaderCircle size={17} className="animate-spin" />
-            ) : (
-              <Upload size={17} />
-            )}
-
-            <span>
-              {authLoading || profileLoading
-                ? "Checking..."
-                : "Upload photograph"}
-            </span>
-          </button>
-        </div>
-
-        {/* Search and sorting */}
-        <div className="mb-7 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <div className="relative w-full sm:max-w-md">
-            <Search
-              size={18}
-              className="absolute left-4 top-1/2 -translate-y-1/2 text-[#99918B]"
-            />
-
-            <input
-              type="text"
-              value={search}
-              onChange={(event) => setSearch(event.target.value)}
-              placeholder="Search photographs, creators or tags..."
-              className="w-full rounded-xl border border-[#EAE6E0] bg-white py-3.5 pl-11 pr-4 text-sm text-[#191919] outline-none transition placeholder:text-[#AAA39D] focus:border-[#E5092D]"
-            />
-          </div>
-
-          <div className="flex items-center gap-3">
-            <SlidersHorizontal size={17} className="shrink-0 text-[#99918B]" />
-
-            <label
-              htmlFor="drishya-sort"
-              className="shrink-0 text-sm text-[#77716F]"
-            >
-              Sort by
-            </label>
-
-            <div className="relative">
-              <select
-                id="drishya-sort"
-                value={sort}
-                onChange={(event) => setSort(event.target.value)}
-                className="appearance-none rounded-xl border border-[#EAE6E0] bg-white py-3 pl-4 pr-10 text-sm text-[#191919] outline-none transition focus:border-[#E5092D]"
-              >
-                {sortOptions.map((option) => (
-                  <option key={option.value} value={option.value}>
-                    {option.label}
-                  </option>
-                ))}
-              </select>
-
-              <ChevronDown
-                size={16}
-                className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-[#77716F]"
+        {/* UPLOAD MODAL */}
+        {showUpload && (
+          <div className="fixed inset-0 z-[100] overflow-y-auto bg-black/80">
+            <div className="min-h-screen">
+              <DrishyaUpload
+                onClose={() => setShowUpload(false)}
+                onCreated={handlePostCreated}
               />
             </div>
           </div>
-        </div>
-
-        {/* Categories */}
-        <div className="mb-8">
-          <p className="mb-3 text-xs font-semibold uppercase tracking-[0.18em] text-[#99918B]">
-            Browse by category
-          </p>
-
-          <div className="flex gap-2 overflow-x-auto pb-2">
-            {categories.map((category) => {
-              const active = activeCategory === category;
-
-              return (
-                <button
-                  key={category}
-                  type="button"
-                  onClick={() => setActiveCategory(category)}
-                  className={`shrink-0 rounded-full border px-5 py-2.5 text-sm transition ${
-                    active
-                      ? "border-[#E5092D] bg-[#E5092D] text-white"
-                      : "border-[#EAE6E0] bg-white text-[#77716F] hover:border-[#E5092D] hover:text-[#E5092D]"
-                  }`}
-                >
-                  {category}
-                </button>
-              );
-            })}
-          </div>
-        </div>
-
-        {/* Results count */}
-        <div className="mb-5 flex items-center justify-between">
-          <p className="text-sm text-[#77716F]">
-            {loading
-              ? "Finding photographs..."
-              : `${filteredPosts.length} photographs`}
-          </p>
-
-          {(search || activeCategory !== "All photographs") && (
-            <button
-              type="button"
-              onClick={clearFilters}
-              className="text-xs text-[#E5092D] transition hover:text-[#C90024]"
-            >
-              Clear filters
-            </button>
-          )}
-        </div>
-
-        {/* Error state */}
-        {error && !loading && (
-          <div className="mb-6 flex flex-col items-center gap-3 rounded-xl border border-[#EAE6E0] bg-white px-5 py-8 text-center">
-            <p className="text-sm text-[#77716F]">{error}</p>
-
-            <button
-              type="button"
-              onClick={() => setRefreshKey((previous) => previous + 1)}
-              className="flex items-center gap-2 text-sm font-medium text-[#E5092D]"
-            >
-              <RefreshCw size={15} />
-              Try again
-            </button>
-          </div>
         )}
+      </main>
 
-        {/* Gallery grid */}
-        <DrishyaGrid
-          posts={filteredPosts}
-          loading={loading}
-          onLike={handleLike}
-        />
-
-        {/* Load more */}
-        {!loading && !isDemoMode && !error && hasMore && (
-          <div className="flex flex-col items-center gap-3 pt-10">
-            {loadMoreError && (
-              <p className="text-sm text-red-600">{loadMoreError}</p>
-            )}
-
-            <button
-              type="button"
-              onClick={handleLoadMore}
-              disabled={loadingMore}
-              className="flex items-center gap-2 rounded-full border border-[#EAE6E0] bg-white px-7 py-3 text-sm font-medium text-[#514C48] transition hover:border-[#E5092D] hover:text-[#E5092D] disabled:opacity-50"
-            >
-              {loadingMore && (
-                <LoaderCircle size={16} className="animate-spin" />
-              )}
-
-              {loadingMore ? "Loading..." : "Load more photographs"}
-            </button>
-          </div>
-        )}
-
-        {/* No search results */}
-        {!loading && filteredPosts.length === 0 && (
-          <div className="py-16 text-center">
-            <p className="font-serif text-2xl text-[#191919]">
-              No photographs found.
-            </p>
-
-            <p className="mt-2 text-sm text-[#99918B]">
-              Try another search or category.
-            </p>
-          </div>
-        )}
-      </section>
-
-      {/* Create Profile Modal */}
-      {showCreateProfile && (
-        <CreateProfile
-          onClose={() => setShowCreateProfile(false)}
-          onSuccess={handleProfileCreated}
-        />
-      )}
-
-      {/* Upload Modal */}
-      {showUpload && (
-        <div className="fixed inset-0 z-[100] overflow-y-auto bg-black/60">
-          <div className="min-h-screen">
-            <DrishyaUpload
-              onClose={() => setShowUpload(false)}
-              onCreated={handlePostCreated}
-            />
-          </div>
-        </div>
-      )}
-    </main>
+      {/* INTRO LOADER */}
+      {showIntroLoader && <DrishyaIntroLoader />}
+    </>
   );
 };
 

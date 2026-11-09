@@ -10,60 +10,45 @@ import {
   Plus,
 } from "lucide-react";
 
+import logo from "../assets/logo.png";
 import { useAuth } from "../context/AuthContext";
 import CreateProfile from "./CreateProfile";
 
-// Reusable painted CTA
-const PaintButton = ({
+// ==========================================
+// PRATIVA PINK BUTTON
+// ==========================================
+
+const CosmicButton = ({
   to,
   children,
   onClick,
   className = "",
   disabled = false,
 }) => {
+  const buttonStyles = `
+    group inline-flex items-center justify-center gap-2
+    rounded-full
+    bg-gradient-to-r from-[#FF4DB8] to-[#FF789A]
+    px-7 py-3
+    font-['Orbitron'] text-xs font-bold tracking-wide text-white
+    shadow-[0_4px_15px_rgba(255,77,184,0.16)]
+    transition-all duration-300
+    hover:-translate-y-0.5
+    hover:shadow-[0_7px_20px_rgba(255,77,184,0.25)]
+    active:translate-y-0
+    disabled:cursor-not-allowed disabled:opacity-50
+    ${className}
+  `;
+
   const content = (
     <>
-      <svg
-        viewBox="0 0 230 72"
-        className="absolute inset-0 -z-10 h-full w-full overflow-visible"
-        preserveAspectRatio="none"
-        aria-hidden="true"
-      >
-        <path
-          d="M12 17 C35 8 62 12 88 9 C126 6 170 10 211 14
-             C222 16 222 27 216 35 C222 44 214 57 201 58
-             C162 64 122 58 91 63 C58 67 26 60 13 58
-             C3 55 6 45 10 37 C3 30 4 21 12 17Z"
-          fill="#E5092D"
-          className="transition-colors duration-300 group-hover:fill-[#C90024]"
-        />
-
-        <path
-          d="M17 14 C57 7 91 13 123 10 C160 8 192 12 216 15"
-          fill="none"
-          stroke="#FF526B"
-          strokeWidth="2"
-          strokeLinecap="round"
-          opacity="0.35"
-        />
-
-        <path
-          d="M13 57 C52 62 83 59 112 61 C150 63 184 59 210 56"
-          fill="none"
-          stroke="#A90020"
-          strokeWidth="1.5"
-          strokeLinecap="round"
-          opacity="0.35"
-        />
-      </svg>
-
-      <span className="relative inline-flex items-center whitespace-nowrap">
-        {children}
-      </span>
+      {children}
+      <ArrowRight
+        size={16}
+        className="transition-transform duration-300 group-hover:translate-x-1"
+      />
     </>
   );
-
-  const classNames = `group relative isolate inline-flex items-center justify-center px-9 py-4 font-serif text-[15px] font-semibold tracking-wide text-white transition-transform duration-300 hover:scale-105 active:scale-95 disabled:cursor-not-allowed disabled:opacity-60 ${className}`;
 
   if (to) {
     return (
@@ -71,7 +56,7 @@ const PaintButton = ({
         to={to}
         onClick={onClick}
         aria-disabled={disabled}
-        className={`${classNames} ${disabled ? "pointer-events-none opacity-60" : ""}`}
+        className={`${buttonStyles} ${disabled ? "pointer-events-none" : ""}`}
       >
         {content}
       </Link>
@@ -83,12 +68,16 @@ const PaintButton = ({
       type="button"
       onClick={onClick}
       disabled={disabled}
-      className={classNames}
+      className={buttonStyles}
     >
       {content}
     </button>
   );
 };
+
+// ==========================================
+// NAVBAR COMPONENT
+// ==========================================
 
 const Navbar = () => {
   const [menuOpen, setMenuOpen] = useState(false);
@@ -98,7 +87,6 @@ const Navbar = () => {
 
   const desktopDropdownRef = useRef(null);
   const mobileDropdownRef = useRef(null);
-  const createProfileOpenRef = useRef(false);
 
   const navigate = useNavigate();
 
@@ -113,6 +101,10 @@ const Navbar = () => {
     refreshProfile,
   } = useAuth();
 
+  // ==========================================
+  // NAVIGATION LINKS
+  // ==========================================
+
   const navLinks = [
     { name: "Home", path: "/" },
     { name: "Explore", path: "/explore" },
@@ -120,23 +112,26 @@ const Navbar = () => {
     { name: "Contact", path: "/contact" },
   ];
 
+  // ==========================================
+  // CLOSE MENUS
+  // ==========================================
+
   const closeMenu = () => {
     setMenuOpen(false);
     setDropdownOpen(false);
   };
 
-  // Close account dropdown when clicking outside.
+  // ==========================================
+  // CLOSE DROPDOWN ON OUTSIDE CLICK
+  // ==========================================
+
   useEffect(() => {
     const handleOutsideClick = (event) => {
-      const clickedInsideDesktop = desktopDropdownRef.current?.contains(
-        event.target,
-      );
+      const insideDesktop = desktopDropdownRef.current?.contains(event.target);
 
-      const clickedInsideMobile = mobileDropdownRef.current?.contains(
-        event.target,
-      );
+      const insideMobile = mobileDropdownRef.current?.contains(event.target);
 
-      if (!clickedInsideDesktop && !clickedInsideMobile) {
+      if (!insideDesktop && !insideMobile) {
         setDropdownOpen(false);
       }
     };
@@ -148,12 +143,10 @@ const Navbar = () => {
     };
   }, []);
 
-  // Keep modal state ref synchronized.
-  useEffect(() => {
-    createProfileOpenRef.current = createProfileOpen;
-  }, [createProfileOpen]);
+  // ==========================================
+  // CREATE PROFILE
+  // ==========================================
 
-  // Open profile creation modal.
   const handleOpenCreateProfile = () => {
     if (loading || profileLoading || !isAuthenticated || hasProfile) {
       return;
@@ -164,16 +157,12 @@ const Navbar = () => {
   };
 
   const closeCreateProfile = () => {
-    createProfileOpenRef.current = false;
     setCreateProfileOpen(false);
   };
 
-  // Called only after the backend confirms profile creation.
   const handleProfileCreated = async () => {
-    // Close first. Profile creation has already succeeded.
     closeCreateProfile();
 
-    // Refresh profile state without keeping the modal open.
     try {
       await refreshProfile();
     } catch (error) {
@@ -184,7 +173,10 @@ const Navbar = () => {
     }
   };
 
-  // Logout.
+  // ==========================================
+  // LOGOUT
+  // ==========================================
+
   const handleLogout = async () => {
     if (loggingOut) return;
 
@@ -205,7 +197,10 @@ const Navbar = () => {
     }
   };
 
-  // Profile avatar.
+  // ==========================================
+  // PROFILE AVATAR
+  // ==========================================
+
   const avatarContent = profile?.profileImage ? (
     <img
       src={profile.profileImage}
@@ -213,38 +208,73 @@ const Navbar = () => {
       className="h-full w-full rounded-full object-cover"
     />
   ) : (
-    <span className="flex h-full w-full items-center justify-center bg-[#E5092D] font-serif text-lg font-semibold text-white">
+    <span className="flex h-full w-full items-center justify-center bg-gradient-to-br from-[#FF4DB8] to-[#FF789A] text-lg font-bold text-white">
       {profile?.username?.charAt(0)?.toUpperCase() || <UserRound size={21} />}
     </span>
   );
 
-  // Account dropdown.
-  const renderProfileDropdown = () => (
-    <div className="absolute right-0 top-full z-[60] mt-3 w-60 overflow-hidden rounded-xl border border-black/10 bg-[#F8F7F4] py-2 shadow-xl">
-      <div className="border-b border-black/[0.07] px-4 py-3">
-        <p className="truncate font-serif text-base font-semibold text-[#191919]">
+  // ==========================================
+  // PROFILE DROPDOWN
+  // ==========================================
+
+  const renderProfileDropdown = (mobile = false) => (
+    <div
+      className={`
+        z-[100] overflow-hidden rounded-xl
+        border border-[#FF4DB8]/20
+        bg-[#080F36]
+        py-2
+        shadow-[0_12px_35px_rgba(0,0,0,0.22)]
+        ${
+          mobile
+            ? "relative mt-3 w-full"
+            : "absolute right-0 top-full mt-3 w-64"
+        }
+      `}
+    >
+      {/* User information */}
+
+      <div className="border-b border-white/10 px-5 py-4">
+        <p className="truncate font-['Orbitron'] text-xs font-semibold text-white">
           {profile?.user?.name || user?.name || "Your account"}
         </p>
 
-        <p className="mt-1 truncate text-xs text-[#77716F]">
+        <p className="mt-2 truncate text-xs text-[#FF789A]">
           @{profile?.username}
         </p>
       </div>
 
+      {/* My profile */}
+
       <Link
         to="/profile"
         onClick={closeMenu}
-        className="flex items-center gap-3 px-4 py-3 text-sm text-[#292929] transition-colors hover:bg-black/[0.04]"
+        className="
+          flex items-center gap-3 px-5 py-4
+          text-sm text-white/80
+          transition-colors
+          hover:bg-[#FF4DB8]/10
+          hover:text-[#FF789A]
+        "
       >
         <UserRound size={17} />
         My Profile
       </Link>
 
+      {/* Logout */}
+
       <button
         type="button"
         onClick={handleLogout}
         disabled={loggingOut}
-        className="flex w-full items-center gap-3 px-4 py-3 text-left text-sm text-[#C90024] transition-colors hover:bg-red-50 disabled:opacity-50"
+        className="
+          flex w-full items-center gap-3
+          px-5 py-4 text-left text-sm
+          text-[#FF789A]
+          transition-colors
+          hover:bg-[#FF4DB8]/10
+          disabled:opacity-50
+        "
       >
         <LogOut size={17} />
         {loggingOut ? "Logging out..." : "Logout"}
@@ -252,106 +282,173 @@ const Navbar = () => {
     </div>
   );
 
-  // Account action based on authentication and profile status.
+  // ==========================================
+  // ACCOUNT ACTIONS
+  // ==========================================
+
   const accountAction = (mobile = false) => {
     if (loading || profileLoading) {
-      return null;
+      return (
+        <div className="flex items-center justify-center gap-2 py-3 text-xs text-white/50">
+          <span className="h-3 w-3 animate-spin rounded-full border-2 border-[#FF4DB8]/30 border-t-[#FF4DB8]" />
+          Loading account...
+        </div>
+      );
     }
+
+    // Not authenticated
 
     if (!isAuthenticated) {
       return (
-        <PaintButton
+        <CosmicButton
           to="/register"
           onClick={closeMenu}
-          className={mobile ? "w-full max-w-[240px] py-5 text-base" : ""}
+          className={mobile ? "w-full max-w-[280px]" : ""}
         >
-          {mobile ? "Join Prativa" : "Join Now"}
-        </PaintButton>
+          {mobile ? "Join PRATIVA" : "Join Now"}
+        </CosmicButton>
       );
     }
 
+    // Authenticated but no profile
+
     if (!hasProfile) {
       return (
-        <PaintButton
+        <CosmicButton
           onClick={handleOpenCreateProfile}
-          className={mobile ? "w-full max-w-[240px] py-5 text-base" : ""}
+          className={mobile ? "w-full max-w-[280px]" : ""}
         >
-          <Plus size={18} className="mr-2" />
-          Create a Profile
-        </PaintButton>
+          <Plus size={17} />
+          Create Profile
+        </CosmicButton>
       );
     }
+
+    // Authenticated with profile
 
     return (
       <div
         ref={mobile ? mobileDropdownRef : desktopDropdownRef}
-        className={`relative ${mobile ? "flex justify-center" : ""}`}
+        className={`relative ${mobile ? "w-full" : ""}`}
       >
         <button
           type="button"
           onClick={() => setDropdownOpen((previous) => !previous)}
           aria-label="Open account menu"
           aria-expanded={dropdownOpen}
-          className="flex items-center gap-2 rounded-full border border-black/10 bg-white/70 p-1.5 pr-3 transition-all hover:border-[#E5092D]/40 hover:shadow-md"
+          className={`
+            flex items-center gap-2
+            rounded-full
+            border border-[#FF4DB8]/25
+            bg-white/5
+            p-1.5 pr-3
+            transition-all
+            hover:border-[#FF4DB8]/70
+            hover:bg-[#FF4DB8]/10
+            ${mobile ? "mx-auto w-full max-w-[280px] justify-center" : ""}
+          `}
         >
-          <span className="h-10 w-10 overflow-hidden rounded-full border border-black/10">
+          <span className="h-10 w-10 shrink-0 overflow-hidden rounded-full border border-[#FF4DB8]/50">
             {avatarContent}
+          </span>
+
+          <span className="font-['Orbitron'] text-[10px] uppercase tracking-wider text-white/80">
+            {mobile ? "My Account" : ""}
           </span>
 
           <ChevronDown
             size={16}
-            className={`text-[#292929] transition-transform ${
+            className={`ml-auto text-[#FF789A] transition-transform ${
               dropdownOpen ? "rotate-180" : ""
             }`}
           />
         </button>
 
-        {dropdownOpen && renderProfileDropdown()}
+        {dropdownOpen && renderProfileDropdown(mobile)}
       </div>
     );
   };
 
+  // ==========================================
+  // MAIN NAVBAR
+  // ==========================================
+
   return (
     <>
-      <header className="absolute left-0 top-0 z-50 w-full border-b border-white/20 bg-transparent">
-        <nav className="mx-auto flex h-[76px] max-w-[1440px] items-center justify-between px-6 sm:px-10 lg:px-14">
-          {/* Logo */}
-          <Link to="/" onClick={closeMenu} className="group flex flex-col">
-            <span className="font-serif text-[29px] font-semibold leading-none tracking-[2px] text-[#191919] transition-colors duration-300 group-hover:text-[#E5092D]">
-              PRATIVA
-            </span>
+      <header className="absolute left-0 top-0 z-50 w-full">
+        {/* MAIN NAVIGATION */}
 
-            <span className="mt-[6px] text-[8px] font-medium uppercase tracking-[1.4px] text-[#77716F]">
-              Where talent leaves its mark.
-            </span>
+        <nav
+          className="
+            flex h-[76px] w-full items-center justify-between
+            px-4 sm:h-[82px] sm:px-8
+            md:h-[90px] md:px-10
+            lg:px-12 xl:px-16 2xl:px-20
+          "
+        >
+          {/* LOGO */}
+
+          <Link
+            to="/"
+            onClick={closeMenu}
+            aria-label="PRATIVA Home"
+            className="group flex shrink-0 items-center"
+          >
+            <img
+              src={logo}
+              alt="PRATIVA - Showcase, Inspire, Connect"
+              className="
+                h-12 w-auto max-w-[150px]
+                object-contain
+                transition-transform duration-300
+                group-hover:scale-[1.03]
+                sm:h-14 sm:max-w-[180px]
+                md:h-16 md:max-w-[210px]
+              "
+            />
           </Link>
 
-          {/* Desktop Navigation */}
-          <div className="hidden items-center gap-11 md:flex">
+          {/* DESKTOP NAVIGATION */}
+
+          <div className="hidden items-center gap-8 md:flex lg:gap-11">
             {navLinks.map((link) => (
               <NavLink
                 key={link.name}
                 to={link.path}
                 onClick={closeMenu}
                 className={({ isActive }) =>
-                  `group relative py-2 font-serif text-[16px] transition-colors duration-300 ${
+                  `group relative py-2 font-['Orbitron'] text-[11px] font-medium uppercase tracking-[1px] transition-colors duration-300 lg:text-xs ${
                     isActive
-                      ? "text-[#C90024]"
-                      : "text-[#292929] hover:text-[#FF1744]"
+                      ? "text-[#FF789A]"
+                      : "text-white/85 hover:text-[#FF789A]"
                   }`
                 }
               >
-                {link.name}
+                {({ isActive }) => (
+                  <>
+                    {link.name}
 
-                <span className="absolute bottom-0 left-0 h-[1.5px] w-full origin-left scale-x-0 bg-[#FF1744] transition-transform duration-300 group-hover:scale-x-100" />
+                    <span
+                      className={`
+                        absolute -bottom-1 left-0
+                        h-[2px] rounded-full
+                        bg-gradient-to-r from-[#FF4DB8] to-[#FF789A]
+                        transition-all duration-300
+                        ${isActive ? "w-full" : "w-0 group-hover:w-full"}
+                      `}
+                    />
+                  </>
+                )}
               </NavLink>
             ))}
           </div>
 
-          {/* Desktop Account Action */}
+          {/* DESKTOP ACCOUNT ACTION */}
+
           <div className="hidden items-center md:flex">{accountAction()}</div>
 
-          {/* Mobile Menu Button */}
+          {/* MOBILE MENU BUTTON */}
+
           <button
             type="button"
             onClick={() => {
@@ -360,50 +457,83 @@ const Navbar = () => {
             }}
             aria-label={menuOpen ? "Close menu" : "Open menu"}
             aria-expanded={menuOpen}
-            className="flex h-10 w-10 items-center justify-center rounded-full text-[#191919] transition-colors hover:bg-black/5 md:hidden"
+            className="
+              flex h-10 w-10 shrink-0
+              items-center justify-center
+              rounded-full
+              border border-[#FF4DB8]/40
+              bg-[#050A30]/50
+              text-[#FF789A]
+              transition-colors
+              hover:bg-[#FF4DB8]/10
+              sm:h-11 sm:w-11
+              md:hidden
+            "
           >
-            {menuOpen ? <X size={23} /> : <Menu size={23} />}
+            {menuOpen ? <X size={22} /> : <Menu size={22} />}
           </button>
         </nav>
 
-        {/* Mobile Navigation */}
-        <div
-          className={`grid overflow-hidden bg-[#F8F7F4] transition-all duration-300 ease-in-out md:hidden ${
-            menuOpen
-              ? "grid-rows-[1fr] border-t border-black/[0.06] opacity-100"
-              : "grid-rows-[0fr] opacity-0"
-          }`}
-        >
-          <div className="min-h-0 overflow-hidden">
-            <div className="flex flex-col px-7 pb-7 pt-3">
-              {navLinks.map((link) => (
-                <NavLink
-                  key={link.name}
-                  to={link.path}
-                  onClick={closeMenu}
-                  className={({ isActive }) =>
-                    `flex items-center justify-between border-b border-black/[0.06] py-4 font-serif text-xl transition-colors ${
-                      isActive
-                        ? "text-[#FF1744]"
-                        : "text-[#292929] hover:text-[#FF1744]"
-                    }`
-                  }
-                >
-                  {link.name}
-                  <ArrowRight size={17} className="opacity-50" />
-                </NavLink>
-              ))}
+        {/* MOBILE NAVIGATION */}
 
-              {/* Mobile Account Action */}
-              <div className="mt-6 flex justify-center">
-                {accountAction(true)}
-              </div>
-            </div>
+        <div
+          className={`
+            overflow-hidden
+            bg-[#050A30]/[98%]
+            shadow-[0_15px_35px_rgba(0,0,0,0.22)]
+            transition-all duration-300 ease-in-out
+            md:hidden
+            ${
+              menuOpen
+                ? "max-h-[750px] border-t border-[#FF4DB8]/20 opacity-100"
+                : "max-h-0 border-t border-transparent opacity-0"
+            }
+          `}
+        >
+          <div className="flex flex-col px-6 pb-8 pt-3 sm:px-8">
+            {/* MOBILE LINKS */}
+
+            {navLinks.map((link) => (
+              <NavLink
+                key={link.name}
+                to={link.path}
+                onClick={closeMenu}
+                className={({ isActive }) =>
+                  `
+                    flex items-center justify-between
+                    border-b border-white/[0.08]
+                    py-4 font-['Orbitron'] text-xs font-medium
+                    uppercase tracking-wider
+                    transition-colors
+                    ${
+                      isActive
+                        ? "text-[#FF789A]"
+                        : "text-white/85 hover:text-[#FF789A]"
+                    }
+                  `
+                }
+              >
+                {link.name}
+
+                <ArrowRight size={17} className="text-[#FF789A]/70" />
+              </NavLink>
+            ))}
+
+            {/* MOBILE ACCOUNT ACTION */}
+
+            <div className="mt-7 w-full">{accountAction(true)}</div>
+
+            {/* FOOTER TEXT */}
+
+            <p className="mt-7 text-center font-['Orbitron'] text-[9px] uppercase tracking-[2px] text-white/40">
+              Where Creativity Takes the Spotlight
+            </p>
           </div>
         </div>
       </header>
 
-      {/* Create Profile Modal */}
+      {/* CREATE PROFILE MODAL */}
+
       {createProfileOpen && (
         <CreateProfile
           onClose={closeCreateProfile}

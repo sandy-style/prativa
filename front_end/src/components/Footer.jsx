@@ -6,6 +6,7 @@ const footerLinks = [
   { label: "Explore", to: "/explore" },
   { label: "About", to: "/about" },
   { label: "Contact", to: "/contact" },
+  { label: "community guidelines", to: "/community-guidelines" },
 ];
 
 export default function Footer() {

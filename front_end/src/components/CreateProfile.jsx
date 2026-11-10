@@ -9,9 +9,11 @@ import {
   FileText,
   LoaderCircle,
   Trash2,
+  Sparkles,
+  CheckCircle2,
 } from "lucide-react";
 
-const API_URL = import.meta.env.VITE_API_URL;
+const API_URL = (import.meta.env.VITE_API_URL || "").replace(/\/+$/, "");
 const MAX_IMAGE_SIZE = 5 * 1024 * 1024;
 
 const CreateProfile = ({ onClose, onSuccess }) => {
@@ -24,12 +26,12 @@ const CreateProfile = ({ onClose, onSuccess }) => {
 
   const fileInputRef = useRef(null);
   const onCloseRef = useRef(onClose);
+  const previewRef = useRef("");
 
   useEffect(() => {
     onCloseRef.current = onClose;
   }, [onClose]);
 
-  // Escape key closes the modal.
   useEffect(() => {
     const handleEscape = (event) => {
       if (event.key === "Escape" && !loading) {
@@ -44,14 +46,13 @@ const CreateProfile = ({ onClose, onSuccess }) => {
     };
   }, [loading]);
 
-  // Clean up preview URL.
   useEffect(() => {
     return () => {
-      if (imagePreview) {
-        URL.revokeObjectURL(imagePreview);
+      if (previewRef.current) {
+        URL.revokeObjectURL(previewRef.current);
       }
     };
-  }, [imagePreview]);
+  }, []);
 
   const handleClose = () => {
     if (!loading) {
@@ -78,11 +79,23 @@ const CreateProfile = ({ onClose, onSuccess }) => {
       return;
     }
 
+    if (previewRef.current) {
+      URL.revokeObjectURL(previewRef.current);
+    }
+
+    const previewUrl = URL.createObjectURL(file);
+
+    previewRef.current = previewUrl;
     setImage(file);
-    setImagePreview(URL.createObjectURL(file));
+    setImagePreview(previewUrl);
   };
 
   const removeImage = () => {
+    if (previewRef.current) {
+      URL.revokeObjectURL(previewRef.current);
+      previewRef.current = "";
+    }
+
     setImage(null);
     setImagePreview("");
 
@@ -156,21 +169,28 @@ const CreateProfile = ({ onClose, onSuccess }) => {
 
   return (
     <div
-      className="fixed inset-0 z-[100] flex items-center justify-center overflow-y-auto bg-black/60 px-4 py-8 backdrop-blur-sm"
+      className="fixed inset-0 z-[100] flex items-center justify-center overflow-y-auto bg-[#02051B]/85 px-4 py-6 backdrop-blur-md sm:py-8"
       onClick={(event) => {
         if (event.target === event.currentTarget) {
           handleClose();
         }
       }}
     >
+      {/* Ambient pink glow */}
+      <div
+        className="pointer-events-none fixed left-1/2 top-1/2 h-[440px] w-[440px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[#FF4DB8]/[0.07] blur-[130px]"
+        aria-hidden="true"
+      />
+
       <div
         role="dialog"
         aria-modal="true"
         aria-labelledby="create-profile-title"
         onClick={(event) => event.stopPropagation()}
-        className="relative my-auto w-full max-w-[490px] overflow-hidden rounded-2xl border border-black/5 bg-[#F8F7F4] shadow-2xl"
+        className="relative my-auto w-full max-w-[480px] overflow-hidden rounded-2xl border border-[#FF4DB8]/20 bg-[#0B153D] shadow-[0_20px_90px_rgba(0,0,0,0.6)]"
       >
-        <div className="h-1.5 w-full bg-[#E5092D]" />
+        {/* Pink accent line */}
+        <div className="h-[3px] w-full bg-gradient-to-r from-[#FF4DB8] via-[#F472B6] to-[#FB7185]" />
 
         {/* Close button */}
         <button
@@ -178,26 +198,28 @@ const CreateProfile = ({ onClose, onSuccess }) => {
           onClick={handleClose}
           disabled={loading}
           aria-label="Close profile creation"
-          className="absolute right-5 top-5 z-10 flex h-9 w-9 items-center justify-center rounded-full text-[#77716F] transition-colors hover:bg-black/5 hover:text-[#191919] disabled:opacity-40"
+          className="absolute right-5 top-5 z-10 flex h-9 w-9 items-center justify-center rounded-full border border-white/[0.08] bg-white/[0.03] text-[#A7B5D8] transition-all duration-200 hover:border-[#FF4DB8]/40 hover:bg-[#FF4DB8]/10 hover:text-[#FF4DB8] disabled:opacity-40"
         >
-          <X size={20} />
+          <X size={18} />
         </button>
 
-        <div className="px-6 pb-7 pt-8 sm:px-9 sm:pb-9">
+        <div className="px-6 pb-7 pt-8 sm:px-8 sm:pb-8">
+          {/* Heading */}
           <div className="mb-7">
-            <span className="mb-3 inline-flex items-center gap-2 text-[10px] font-semibold uppercase tracking-[2px] text-[#E5092D]">
-              <span className="h-[1px] w-6 bg-[#E5092D]" />
+            <span className="mb-3 inline-flex items-center gap-2 rounded-full border border-[#FF4DB8]/20 bg-[#FF4DB8]/[0.07] px-3 py-1.5 text-[10px] font-semibold uppercase tracking-[1.8px] text-[#FF75C8]">
+              <Sparkles size={12} />
               Your journey begins here
             </span>
 
             <h2
               id="create-profile-title"
-              className="font-serif text-3xl font-semibold tracking-tight text-[#191919] sm:text-4xl"
+              className="font-serif text-3xl font-semibold tracking-tight text-[#F4F7FF] sm:text-[34px]"
             >
-              Create your profile<span className="text-[#E5092D]">.</span>
+              Create your profile
+              <span className="text-[#FF4DB8]">.</span>
             </h2>
 
-            <p className="mt-3 max-w-[360px] text-sm leading-6 text-[#77716F]">
+            <p className="mt-2.5 max-w-[350px] text-sm leading-6 text-[#A7B5D8]">
               Give your creativity a name. Let people discover the person behind
               the talent.
             </p>
@@ -207,7 +229,9 @@ const CreateProfile = ({ onClose, onSuccess }) => {
             {/* Profile picture */}
             <div className="flex items-center gap-5">
               <div className="relative h-[88px] w-[88px] shrink-0">
-                <div className="flex h-full w-full items-center justify-center overflow-hidden rounded-full border border-black/10 bg-[#EEECE6]">
+                <div className="absolute -inset-[3px] rounded-full bg-gradient-to-br from-[#FF4DB8] via-[#F472B6] to-[#FB7185] opacity-80 blur-[5px]" />
+
+                <div className="relative flex h-full w-full items-center justify-center overflow-hidden rounded-full border-[3px] border-[#0B153D] bg-gradient-to-br from-[#251638] to-[#35152E]">
                   {imagePreview ? (
                     <img
                       src={imagePreview}
@@ -215,7 +239,7 @@ const CreateProfile = ({ onClose, onSuccess }) => {
                       className="h-full w-full object-cover"
                     />
                   ) : (
-                    <UserRound size={34} className="text-[#A39D94]" />
+                    <UserRound size={34} className="text-[#FF8BCB]" />
                   )}
                 </div>
 
@@ -224,27 +248,27 @@ const CreateProfile = ({ onClose, onSuccess }) => {
                   onClick={() => fileInputRef.current?.click()}
                   disabled={loading}
                   aria-label="Choose profile picture"
-                  className="absolute bottom-0 right-0 flex h-8 w-8 items-center justify-center rounded-full border-2 border-[#F8F7F4] bg-[#E5092D] text-white shadow-sm"
+                  className="absolute bottom-0 right-0 flex h-8 w-8 items-center justify-center rounded-full border-2 border-[#0B153D] bg-[#FF4DB8] text-white shadow-[0_3px_15px_rgba(255,77,184,0.35)] transition-all duration-200 hover:scale-110 hover:bg-[#F472B6] disabled:opacity-40"
                 >
                   <Camera size={15} />
                 </button>
               </div>
 
               <div className="min-w-0">
-                <p className="font-serif text-base font-semibold text-[#191919]">
+                <p className="font-serif text-base font-semibold text-[#F4F7FF]">
                   Profile picture
                 </p>
 
-                <p className="mt-1 text-xs leading-5 text-[#77716F]">
+                <p className="mt-1 text-xs leading-5 text-[#8194C4]">
                   JPG, PNG or WEBP, maximum 5MB.
                 </p>
 
-                <div className="mt-2 flex items-center gap-3">
+                <div className="mt-2.5 flex flex-wrap items-center gap-3">
                   <button
                     type="button"
                     onClick={() => fileInputRef.current?.click()}
                     disabled={loading}
-                    className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#E5092D]"
+                    className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#FF75C8] transition hover:text-[#FFB0DE] disabled:opacity-40"
                   >
                     <ImagePlus size={14} />
                     {image ? "Change photo" : "Upload photo"}
@@ -255,7 +279,7 @@ const CreateProfile = ({ onClose, onSuccess }) => {
                       type="button"
                       onClick={removeImage}
                       disabled={loading}
-                      className="inline-flex items-center gap-1 text-xs text-[#77716F] hover:text-red-600"
+                      className="inline-flex items-center gap-1 text-xs text-[#8194C4] transition hover:text-[#FF75C8] disabled:opacity-40"
                     >
                       <Trash2 size={13} />
                       Remove
@@ -278,14 +302,14 @@ const CreateProfile = ({ onClose, onSuccess }) => {
             <div>
               <label
                 htmlFor="profile-username"
-                className="mb-2 block text-xs font-semibold uppercase tracking-[1px] text-[#514C48]"
+                className="mb-2 block text-[11px] font-semibold uppercase tracking-[1.5px] text-[#C9D8F7]"
               >
                 Username
               </label>
 
-              <div className="flex items-center rounded-xl border border-[#DEDAD3] bg-white focus-within:border-[#E5092D] focus-within:ring-2 focus-within:ring-[#E5092D]/10">
-                <span className="pl-4 text-[#A39D94]">
-                  <AtSign size={18} />
+              <div className="flex items-center rounded-xl border border-white/[0.10] bg-[#07102F] transition-all duration-200 focus-within:border-[#FF4DB8]/60 focus-within:ring-2 focus-within:ring-[#FF4DB8]/10">
+                <span className="pl-4 text-[#FF75C8]">
+                  <AtSign size={17} />
                 </span>
 
                 <input
@@ -303,11 +327,11 @@ const CreateProfile = ({ onClose, onSuccess }) => {
                   autoComplete="username"
                   required
                   disabled={loading}
-                  className="w-full rounded-xl bg-transparent px-3 py-3.5 text-sm text-[#191919] outline-none placeholder:text-[#B4AEA5]"
+                  className="w-full rounded-xl bg-transparent px-3 py-3.5 text-sm text-[#F4F7FF] outline-none placeholder:text-[#65759F]"
                 />
               </div>
 
-              <p className="mt-2 text-[11px] text-[#969087]">
+              <p className="mt-2 text-[11px] text-[#7182B1]">
                 3–20 characters. Letters, numbers and underscores only.
               </p>
             </div>
@@ -317,18 +341,22 @@ const CreateProfile = ({ onClose, onSuccess }) => {
               <div className="mb-2 flex items-center justify-between">
                 <label
                   htmlFor="profile-bio"
-                  className="text-xs font-semibold uppercase tracking-[1px] text-[#514C48]"
+                  className="text-[11px] font-semibold uppercase tracking-[1.5px] text-[#C9D8F7]"
                 >
                   About you
                 </label>
 
-                <span className="text-[11px] tabular-nums text-[#969087]">
+                <span
+                  className={`text-[11px] tabular-nums ${
+                    bio.length >= 150 ? "text-[#FF75C8]" : "text-[#7182B1]"
+                  }`}
+                >
                   {bio.length}/160
                 </span>
               </div>
 
               <div className="relative">
-                <span className="absolute left-4 top-4 text-[#A39D94]">
+                <span className="absolute left-4 top-4 text-[#FF75C8]">
                   <FileText size={17} />
                 </span>
 
@@ -343,7 +371,7 @@ const CreateProfile = ({ onClose, onSuccess }) => {
                   maxLength={160}
                   rows={3}
                   disabled={loading}
-                  className="w-full resize-none rounded-xl border border-[#DEDAD3] bg-white py-3.5 pl-11 pr-4 text-sm leading-6 text-[#191919] outline-none placeholder:text-[#B4AEA5] focus:border-[#E5092D] focus:ring-2 focus:ring-[#E5092D]/10"
+                  className="w-full resize-none rounded-xl border border-white/[0.10] bg-[#07102F] py-3.5 pl-11 pr-4 text-sm leading-6 text-[#F4F7FF] outline-none transition placeholder:text-[#65759F] focus:border-[#FF4DB8]/60 focus:ring-2 focus:ring-[#FF4DB8]/10"
                 />
               </div>
             </div>
@@ -352,17 +380,18 @@ const CreateProfile = ({ onClose, onSuccess }) => {
             {error && (
               <div
                 role="alert"
-                className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm leading-5 text-red-700"
+                className="flex items-start gap-2.5 rounded-xl border border-[#FF4DB8]/25 bg-[#FF4DB8]/[0.08] px-4 py-3 text-sm leading-5 text-[#FF8BCB]"
               >
-                {error}
+                <X size={16} className="mt-0.5 shrink-0" />
+                <span>{error}</span>
               </div>
             )}
 
-            {/* Submit */}
+            {/* Submit button */}
             <button
               type="submit"
               disabled={loading}
-              className="flex w-full items-center justify-center gap-2 rounded-xl bg-[#E5092D] px-5 py-4 font-serif text-base font-semibold text-white shadow-md transition-all hover:-translate-y-0.5 hover:bg-[#C90024] disabled:cursor-not-allowed disabled:opacity-60"
+              className="group relative flex w-full items-center justify-center gap-2 overflow-hidden rounded-xl bg-[#FF4DB8] px-5 py-4 font-serif text-base font-semibold text-white shadow-[0_5px_25px_rgba(255,77,184,0.18)] transition-all duration-200 hover:-translate-y-0.5 hover:bg-[#F472B6] hover:shadow-[0_8px_30px_rgba(255,77,184,0.3)] active:translate-y-0 disabled:cursor-not-allowed disabled:opacity-60"
             >
               {loading ? (
                 <>
@@ -370,11 +399,15 @@ const CreateProfile = ({ onClose, onSuccess }) => {
                   Creating your profile...
                 </>
               ) : (
-                "Create My Profile"
+                <>
+                  <Sparkles size={17} />
+                  Create My Profile
+                </>
               )}
             </button>
 
-            <p className="text-center text-[11px] leading-5 text-[#969087]">
+            <p className="flex items-center justify-center gap-1.5 text-center text-[11px] leading-5 text-[#7182B1]">
+              <CheckCircle2 size={12} className="text-[#FF75C8]" />
               Your creative journey on PRATIVA starts with a profile.
             </p>
           </form>

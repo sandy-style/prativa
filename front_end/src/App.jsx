@@ -23,7 +23,7 @@ import DrishyaManch from "./pages/DrishyaManch";
 import SwarManch from "./pages/SwarManch";
 import RangManch from "./pages/RangManch";
 import ShabdaManch from "./pages/ShabdaManch";
-
+import CommunityGuidelines from "./pages/CommunityGuidelines";
 // Profile
 import Profile from "./pages/Profile";
 
@@ -52,7 +52,7 @@ const App = () => {
       <Route path="/verify-email" element={<VerifyEmail />} />
       <Route path="/forgot-password" element={<ForgotPassword />} />
       <Route path="/reset-password" element={<ResetPassword />} />
-
+      <Route path="/community-guidelines" element={<CommunityGuidelines />} />
       {/* Profiles */}
       <Route path="/profile" element={<Profile />} />
       <Route path="/profile/:userId" element={<Profile />} />

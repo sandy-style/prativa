@@ -1,9 +1,19 @@
-import mongoose from "mongoose";
+﻿import mongoose from "mongoose";
 import Like from "../models/likeModel.js";
 import Post from "../models/postModel.js";
 import Profile from "../models/profileModel.js";
 
+import {
+  notifyPostLiked,
+  checkAndNotifyLikeMilestone,
+} from "../services/notificationService.js";
+
+import { checkAutomaticEventWinner } from "./leaderboardController.js";
+
+// ======================================================
 // LIKE A POST
+// ======================================================
+
 export const likePost = async (req, res) => {
   try {
     const userId = req.user.id;
@@ -41,7 +51,7 @@ export const likePost = async (req, res) => {
         post: postId,
       });
     } catch (error) {
-      // Prevent duplicate likes
+      // Prevent duplicate likes.
       if (error.code === 11000) {
         return res.status(409).json({
           success: false,
@@ -55,6 +65,22 @@ export const likePost = async (req, res) => {
     const likeCount = await Like.countDocuments({
       post: postId,
     });
+
+    // 1. Notify the post author.
+    notifyPostLiked(post, userId).catch((err) =>
+      console.error("Like notification error:", err),
+    );
+
+    // 2. Check the 100-like milestone.
+    checkAndNotifyLikeMilestone(post, likeCount, 100).catch((err) =>
+      console.error("Milestone check error:", err),
+    );
+
+    // 3. Check automatic Event winner threshold.
+    // Each post competes individually.
+    checkAutomaticEventWinner(post._id, post.author, post.category).catch(
+      (err) => console.error("Automatic Event winner check error:", err),
+    );
 
     return res.status(201).json({
       success: true,
@@ -71,7 +97,10 @@ export const likePost = async (req, res) => {
   }
 };
 
+// ======================================================
 // UNLIKE A POST
+// ======================================================
+
 export const unlikePost = async (req, res) => {
   try {
     const userId = req.user.id;
@@ -117,7 +146,10 @@ export const unlikePost = async (req, res) => {
   }
 };
 
+// ======================================================
 // GET LIKE STATUS AND COUNT
+// ======================================================
+
 export const getLikeStatus = async (req, res) => {
   try {
     const userId = req.user.id;

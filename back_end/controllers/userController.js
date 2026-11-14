@@ -1,4 +1,4 @@
-import User from "../models/userModel.js";
+﻿import User from "../models/userModel.js";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import crypto from "crypto";
@@ -82,10 +82,12 @@ const setTokenCookie = (res, userId) => {
 };
 
 // Safe user response
+// IMPORTANT: Include role so the frontend can identify admins/moderators.
 const userResponse = (user) => ({
   _id: user._id,
   name: user.name,
   email: user.email,
+  role: user.role || "user",
   isVerified: user.isVerified,
 });
 
@@ -129,7 +131,6 @@ export const register = async (req, res) => {
       verificationCodeExpires: Date.now() + 10 * 60 * 1000,
     });
 
-    // Account creation succeeds even if email delivery fails.
     try {
       await sendCodeEmail(normalizedEmail, code, "verification");
 

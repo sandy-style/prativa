@@ -1,7 +1,8 @@
-import mongoose from "mongoose";
+﻿import mongoose from "mongoose";
 import Comment from "../models/commentModel.js";
 import Post from "../models/postModel.js";
 import Profile from "../models/profileModel.js";
+import { notifyPostCommented } from "../services/notificationService.js";
 
 // Attach profile information to comments
 const attachCommentProfiles = async (comments) => {
@@ -79,6 +80,11 @@ export const createComment = async (req, res) => {
       post: postId,
       content: content.trim(),
     });
+
+    // Notify author
+    notifyPostCommented(post, userId, content.trim()).catch((err) =>
+      console.error("Comment notification err:", err),
+    );
 
     const populatedComment = await Comment.findById(comment._id)
       .populate("user", "name")
@@ -159,7 +165,7 @@ export const getPostComments = async (req, res) => {
   }
 };
 
-// DELETE OWN COMMENT
+// DELETE COMMENT (OWNER OR ADMIN)
 export const deleteComment = async (req, res) => {
   try {
     const userId = req.user.id;
@@ -181,7 +187,7 @@ export const deleteComment = async (req, res) => {
       });
     }
 
-    if (comment.user.toString() !== userId.toString()) {
+    if (comment.user.toString() !== userId.toString() && req.user.role !== "admin") {
       return res.status(403).json({
         success: false,
         message: "You cannot delete someone else's comment.",
@@ -192,7 +198,7 @@ export const deleteComment = async (req, res) => {
 
     return res.status(200).json({
       success: true,
-      message: "Comment deleted.",
+      message: "Comment deleted successfully.",
     });
   } catch (error) {
     console.error("Delete comment error:", error);

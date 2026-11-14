@@ -8,6 +8,9 @@ import {
   UserRound,
   ChevronDown,
   Plus,
+  ShieldCheck,
+  Trophy,
+  CalendarDays,
 } from "lucide-react";
 
 import logo from "../assets/logo.png";
@@ -102,12 +105,28 @@ const Navbar = () => {
   } = useAuth();
 
   // ==========================================
+  // ADMIN CHECK
+  // ==========================================
+
+  const isAdmin = user?.role === "admin";
+
+  // ==========================================
   // NAVIGATION LINKS
   // ==========================================
 
   const navLinks = [
     { name: "Home", path: "/" },
     { name: "Explore", path: "/explore" },
+    {
+      name: "Leaderboard",
+      path: "/leaderboard",
+      icon: Trophy,
+    },
+    {
+      name: "Events",
+      path: "/events",
+      icon: CalendarDays,
+    },
     { name: "About", path: "/about" },
     { name: "Contact", path: "/contact" },
   ];
@@ -232,7 +251,7 @@ const Navbar = () => {
         }
       `}
     >
-      {/* User information */}
+      {/* USER INFORMATION */}
 
       <div className="border-b border-white/10 px-5 py-4">
         <p className="truncate font-['Orbitron'] text-xs font-semibold text-white">
@@ -242,9 +261,16 @@ const Navbar = () => {
         <p className="mt-2 truncate text-xs text-[#FF789A]">
           @{profile?.username}
         </p>
+
+        {isAdmin && (
+          <span className="mt-2 inline-flex items-center gap-1.5 rounded-full border border-[#FF4DB8]/25 bg-[#FF4DB8]/10 px-2.5 py-1 text-[9px] font-bold uppercase tracking-wider text-[#FF789A]">
+            <ShieldCheck size={11} />
+            Administrator
+          </span>
+        )}
       </div>
 
-      {/* My profile */}
+      {/* MY PROFILE */}
 
       <Link
         to="/profile"
@@ -261,7 +287,36 @@ const Navbar = () => {
         My Profile
       </Link>
 
-      {/* Logout */}
+      {/* ADMIN PANEL - ADMIN ONLY */}
+
+      {isAdmin && (
+        <Link
+          to="/admin"
+          onClick={closeMenu}
+          className="
+            group flex items-center justify-between
+            border-y border-[#FF4DB8]/10
+            bg-gradient-to-r from-[#FF4DB8]/10 to-transparent
+            px-5 py-4
+            text-sm font-semibold text-[#FF789A]
+            transition-all
+            hover:bg-[#FF4DB8]/20
+            hover:text-white
+          "
+        >
+          <span className="flex items-center gap-3">
+            <ShieldCheck size={18} />
+            Admin Panel
+          </span>
+
+          <ArrowRight
+            size={15}
+            className="transition-transform group-hover:translate-x-1"
+          />
+        </Link>
+      )}
+
+      {/* LOGOUT */}
 
       <button
         type="button"
@@ -296,7 +351,7 @@ const Navbar = () => {
       );
     }
 
-    // Not authenticated
+    // NOT AUTHENTICATED
 
     if (!isAuthenticated) {
       return (
@@ -310,7 +365,7 @@ const Navbar = () => {
       );
     }
 
-    // Authenticated but no profile
+    // AUTHENTICATED BUT NO PROFILE
 
     if (!hasProfile) {
       return (
@@ -324,7 +379,7 @@ const Navbar = () => {
       );
     }
 
-    // Authenticated with profile
+    // AUTHENTICATED WITH PROFILE
 
     return (
       <div
@@ -410,14 +465,15 @@ const Navbar = () => {
 
           {/* DESKTOP NAVIGATION */}
 
-          <div className="hidden items-center gap-8 md:flex lg:gap-11">
+          <div className="hidden items-center gap-6 md:flex lg:gap-9">
             {navLinks.map((link) => (
               <NavLink
                 key={link.name}
                 to={link.path}
+                end={link.path === "/"}
                 onClick={closeMenu}
                 className={({ isActive }) =>
-                  `group relative py-2 font-['Orbitron'] text-[11px] font-medium uppercase tracking-[1px] transition-colors duration-300 lg:text-xs ${
+                  `group relative py-2 font-['Orbitron'] text-[10px] font-medium uppercase tracking-[1px] transition-colors duration-300 lg:text-[11px] ${
                     isActive
                       ? "text-[#FF789A]"
                       : "text-white/85 hover:text-[#FF789A]"
@@ -485,7 +541,7 @@ const Navbar = () => {
             md:hidden
             ${
               menuOpen
-                ? "max-h-[750px] border-t border-[#FF4DB8]/20 opacity-100"
+                ? "max-h-[850px] border-t border-[#FF4DB8]/20 opacity-100"
                 : "max-h-0 border-t border-transparent opacity-0"
             }
           `}
@@ -497,6 +553,7 @@ const Navbar = () => {
               <NavLink
                 key={link.name}
                 to={link.path}
+                end={link.path === "/"}
                 onClick={closeMenu}
                 className={({ isActive }) =>
                   `

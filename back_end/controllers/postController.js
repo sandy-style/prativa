@@ -1,4 +1,4 @@
-import mongoose from "mongoose";
+﻿import mongoose from "mongoose";
 import Post from "../models/postModel.js";
 import Profile from "../models/profileModel.js";
 import { v2 as cloudinary } from "cloudinary";
@@ -624,3 +624,4 @@ export const deletePost = async (req, res) => {
     });
   }
 };
+

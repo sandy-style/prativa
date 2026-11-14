@@ -1,14 +1,9 @@
-import Profile from "../models/profileModel.js";
-import { v2 as cloudinary } from "cloudinary";
-
-cloudinary.config({
-  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
-  api_key: process.env.CLOUDINARY_API_KEY,
-  api_secret: process.env.CLOUDINARY_API_SECRET,
-});
+﻿import Profile from "../models/profileModel.js";
+import { cloudinary } from "../configs/cloudinary.js";
+import Post from "../models/postModel.js";
+import Like from "../models/likeModel.js";
 
 const MAX_IMAGE_SIZE = 5 * 1024 * 1024;
-
 const ALLOWED_IMAGE_TYPES = ["image/jpeg", "image/png", "image/webp"];
 
 // Validate profile image.
@@ -91,7 +86,7 @@ export const createProfile = async (req, res) => {
       return res.status(400).json({
         success: false,
         message:
-          "Username must be 3–20 characters and contain only lowercase letters, numbers, and underscores.",
+          "Username must be 3-20 characters and contain only lowercase letters, numbers, and underscores.",
       });
     }
 
@@ -176,7 +171,7 @@ export const getMyProfile = async (req, res) => {
   try {
     const profile = await Profile.findOne({
       user: req.user.id,
-    }).populate("user", "name email");
+    }).populate("user", "name email role status");
 
     if (!profile) {
       return res.status(404).json({
@@ -206,7 +201,7 @@ export const getUserProfile = async (req, res) => {
 
     const profile = await Profile.findOne({
       user: userId,
-    }).populate("user", "name");
+    }).populate("user", "name role status");
 
     if (!profile) {
       return res.status(404).json({
@@ -250,8 +245,12 @@ export const updateProfile = async (req, res) => {
       });
     }
 
-    // Prevent username changes.
-    if (req.body.username !== undefined) {
+    // Prevent changing username to a DIFFERENT username.
+    // If sent with the same username as current, safely allow.
+    if (
+      req.body.username !== undefined &&
+      req.body.username.trim().toLowerCase() !== profile.username
+    ) {
       return res.status(403).json({
         success: false,
         message: "Username cannot be changed after profile creation.",
